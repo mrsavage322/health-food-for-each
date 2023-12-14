@@ -1,13 +1,13 @@
 package app
 
-type AuthData interface {
+type Authenticator interface {
 	SetAuthData()
 	GetAuthData()
 }
 
-type FoodData interface {
-	SetFoodData()
-	GetFoodData()
+type FoodAction interface {
+	SetFoodData(data FoodData) error
+	GetFoodData(data FoodData) error
 }
 
 type PersonData struct {
@@ -19,4 +19,31 @@ type PersonData struct {
 	Weight     int
 	Sex        int
 	MealNubmer int
+}
+
+type FoodData struct {
+	Kcal     int
+	Proteins int
+	Fats     int
+	Carbs    int
+	Feature  string
+}
+
+type FoodDataForPerson struct {
+	Kcal     int
+	Proteins int
+	Fats     int
+	Carbs    int
+	Feature  string
+	IsLovely bool
+}
+
+func SetFoodData(data FoodData) error {
+	//Запрос к базе данных для добавления продукта
+	return nil
+}
+
+func GetFoodData(data FoodData) error {
+	//Запрос к базе данных для получения продукта продукта
+	return nil
 }
