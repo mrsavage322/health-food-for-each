@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"log"
 )
 
 type Auth interface {
-	SetAuthData()
-	GetAuthData()
+	SetAuthData(ctx context.Context, login string, pass []byte) error
+	GetAuthData(ctx context.Context, login string, pass []byte) (string, error)
 }
 
 type PersonData struct {
@@ -78,23 +79,25 @@ func DataBaseConnection(connection string) DBConnect {
 //	IsLovely bool
 //}
 
-func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) (string, error) {
+func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
 	err := d.pool.QueryRow(ctx, `
-		INSERT INTO kbgu (login, password)
+		INSERT INTO authuser (login, password)
 		VALUES ($1, $2)
 		ON CONFLICT (login)
 		DO UPDATE SET id = 1 
 	`, login, pass)
 
 	if err != nil {
-		return "User already exist!", nil
+		log.Println("Have a problem :", err)
+		return nil
 	}
-	return "User was created!", nil
+	log.Println("User was created")
+	return nil
 }
 
 func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) (string, error) {
 	var userData string
-	err := d.pool.QueryRow(ctx, "SELECT login, password FROM kbgu.AuthUser WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
+	err := d.pool.QueryRow(ctx, "SELECT password FROM AuthUser WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
 	if err != nil {
 		return "User not exist or password was entered incorrect!", err
 	}
@@ -103,10 +106,10 @@ func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) 
 
 func (s *DBConnect) CreateTable() error {
 	_, err := s.pool.Exec(context.Background(), `
-        CREATE TABLE IF NOT EXISTS AuthUser (
+        CREATE TABLE IF NOT EXISTS authuser (
             id SERIAL PRIMARY KEY,
             login VARCHAR UNIQUE NOT NULL,
-            password VARCHAR NOT NULL                               
+            password BYTEA NOT NULL                               
         );
     `)
 	if err != nil {

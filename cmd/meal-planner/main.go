@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-var ServerAddress string
-var DBConnection string
+var dbConnection string
 
 func main() {
 
-	DBConnection = "postgres://man:350784LvoV.@localhost:5432/kbgu"
+	dbConnection = "postgres://postgres:@localhost:5432/kbgu"
+	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
 
@@ -35,8 +35,9 @@ func main() {
 
 	//Хэндлеры
 	//r.Get("/", MainPage)
-	r.Get("/auth", internal.SignIn)
-	r.Get("/auth", internal.SignUp)
+
+	r.Post("/sign_in", internal.SignIn)
+	r.Post("/sign_up", internal.SignUp)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)
@@ -47,9 +48,9 @@ func main() {
 	//r.Delete("/my-food", RemoveMyFood)
 
 	//TODO: вынести в конфиг
-	ServerAddress = "http://localhost:8080"
+	internal.ServerAddress = "localhost:8080"
 	srv := &http.Server{
-		Addr:    ServerAddress,
+		Addr:    internal.ServerAddress,
 		Handler: r,
 	}
 
@@ -69,7 +70,7 @@ func main() {
 		}
 	}()
 
-	log.Printf("Server is listening on %s\n", ServerAddress)
+	log.Printf("Server is listening on %s\n", internal.ServerAddress)
 
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("HTTP server ListenAndServe: %v", err)
