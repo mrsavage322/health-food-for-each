@@ -13,8 +13,11 @@ import (
 )
 
 var ServerAddress string
+var DBConnection string
 
 func main() {
+
+	DBConnection = "postgres://man:350784LvoV.@localhost:5432/kbgu"
 	//SetFlags()
 	//SetConfig()
 
