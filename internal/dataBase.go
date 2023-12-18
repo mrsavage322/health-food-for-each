@@ -35,21 +35,24 @@ func DataBaseConnection(connection string) DBConnect {
 		error: err,
 	}
 
-	if err := dbConnect.CreateTable(); err != nil {
+	if err := dbConnect.CreateAuthTable(); err != nil {
 		fmt.Println("We have a error!")
 	}
+	if err := dbConnect.CreateFoodTable(); err != nil {
+		fmt.Println("We have a error!")
+	}
+
 	return *dbConnect
 }
 
-//type Authenticator interface {
-//	SetAuthData()
-//	GetAuthData()
-//}
-//
-//type FoodAction interface {
-//	SetFoodData(data FoodData) error
-//	GetFoodData(data FoodData) error
-//}
+//	type Authenticator interface {
+//		SetAuthData()
+//		GetAuthData()
+//	}
+type FoodAction interface {
+	SetFoodData(ctx context.Context, proteins, fats, carbs int, feature string) error
+	//GetFoodData(data FoodData) error
+}
 
 //type PersonData struct {
 //	Username   string
@@ -81,7 +84,7 @@ func DataBaseConnection(connection string) DBConnect {
 
 func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
 	err := d.pool.QueryRow(ctx, `
-		INSERT INTO authuser (login, password)
+		INSERT INTO user (login, password)
 		VALUES ($1, $2)
 		ON CONFLICT (login)
 		DO UPDATE SET id = 1 
@@ -97,7 +100,7 @@ func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) 
 
 func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) ([]byte, error) {
 	var userData []byte
-	err := d.pool.QueryRow(ctx, "SELECT password FROM AuthUser WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
+	err := d.pool.QueryRow(ctx, "SELECT password FROM user WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
 	if err != nil {
 		log.Println("User not exist or password was entered incorrect!")
 		return nil, err
@@ -105,12 +108,48 @@ func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) 
 	return userData, err
 }
 
-func (s *DBConnect) CreateTable() error {
+func (d *DBConnect) SetFoodData(ctx context.Context, proteins, fats, carbs int, feature string) error {
+	err := d.pool.QueryRow(ctx, `
+		INSERT INTO food (proteins, fats, carbs, fature)
+		VALUES ($1, $2, $3, $4)
+	`, proteins, fats, carbs, feature)
+
+	if err != nil {
+		log.Println("Have a problem :", err)
+		return nil
+	}
+	log.Println("Food added")
+	return nil
+}
+
+func (s *DBConnect) CreateAuthTable() error {
 	_, err := s.pool.Exec(context.Background(), `
-        CREATE TABLE IF NOT EXISTS authuser (
+        CREATE TABLE IF NOT EXISTS user (
             id SERIAL PRIMARY KEY,
             login VARCHAR UNIQUE NOT NULL,
-            password BYTEA NOT NULL                               
+            password BYTEA NOT NULL,
+            age INT,
+            height INT,
+            weight INT,
+            amount INT                       
+        );
+    `)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DBConnect) CreateFoodTable() error {
+	_, err := s.pool.Exec(context.Background(), `
+        CREATE TABLE IF NOT EXISTS food (
+            id SERIAL PRIMARY KEY,
+            proteins int NOT NULL,
+            fats int NOT NULL,
+            carbs int NOT NULL,
+            feature VARCHAR NOT NULL,
+            isLoved BOOL,
+            login VARCHAR UNIQUE NOT NULL
         );
     `)
 	if err != nil {
