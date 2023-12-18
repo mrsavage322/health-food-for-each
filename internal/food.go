@@ -1,8 +1,10 @@
 package internal
 
 import (
+	"context"
 	"html/template"
 	"net/http"
+	"strconv"
 )
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
@@ -18,15 +20,15 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 		carbs := r.FormValue("carbs")
 		feature := r.FormValue("feature")
 
+		p, _ := strconv.Atoi(proteins)
+		f, _ := strconv.Atoi(fats)
+		c, _ := strconv.Atoi(carbs)
+
 		// Ваша логика обработки логина и пароля
 		// Здесь вы можете добавить проверки, хеширование пароля и т. д.
 
 		// Пример: просто выводим в консоль
-		println("Proteins:", proteins)
-		println("Fats:", fats)
-		println("Carbs:", carbs)
-		println("Feature:", feature)
-
+		ConnectFoodDB.SetFoodData(context.Background(), p, f, c, feature)
 	}
 
 	// Используем шаблон для отображения страницы

@@ -16,7 +16,7 @@ var dbConnection string
 
 func main() {
 
-	dbConnection = "postgres://postgres:@localhost:5432/kbgu"
+	dbConnection = "postgres://postgres:350784@localhost:5432/kbgu"
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
@@ -38,6 +38,7 @@ func main() {
 	r.Post("/sign_in", internal.SignIn)
 	r.Get("/add", internal.AddFood)
 	r.Post("/sign_up", internal.SignUp)
+	r.Post("/add", internal.AddFood)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)

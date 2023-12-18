@@ -124,7 +124,7 @@ func (d *DBConnect) SetFoodData(ctx context.Context, proteins, fats, carbs int, 
 
 func (s *DBConnect) CreateAuthTable() error {
 	_, err := s.pool.Exec(context.Background(), `
-        CREATE TABLE IF NOT EXISTS user (
+        CREATE TABLE IF NOT EXISTS userdata (
             id SERIAL PRIMARY KEY,
             login VARCHAR UNIQUE NOT NULL,
             password BYTEA NOT NULL,
@@ -144,9 +144,10 @@ func (s *DBConnect) CreateFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
             id SERIAL PRIMARY KEY,
-            proteins int NOT NULL,
-            fats int NOT NULL,
-            carbs int NOT NULL,
+            foodName VARCHAR,
+            proteins INT NOT NULL,
+            fats INT NOT NULL,
+            carbs INT NOT NULL,
             feature VARCHAR NOT NULL,
             isLoved BOOL,
             login VARCHAR UNIQUE NOT NULL
