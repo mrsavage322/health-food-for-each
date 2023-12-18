@@ -122,3 +122,55 @@ func MainPage(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Добро пожаловать!"))
 	}
 }
+
+type PageVariables struct {
+	Title string
+}
+
+//Пример формочки для UI
+//func UISignIn(w http.ResponseWriter, r *http.Request) {
+//	pageVariables := PageVariables{
+//		Title: "Login Page",
+//	}
+//
+//	// Проверяем метод запроса
+//	if r.Method == http.MethodPost {
+//		// Получаем значения из формы
+//		username := r.FormValue("username")
+//		password := r.FormValue("password")
+//
+//		// Ваша логика обработки логина и пароля
+//		// Здесь вы можете добавить проверки, хеширование пароля и т. д.
+//
+//		// Пример: просто выводим в консоль
+//		println("Username:", username)
+//		println("Password:", password)
+//	}
+//
+//	// Используем шаблон для отображения страницы
+//	tmpl, err := template.New("index").Parse(`
+//		<!DOCTYPE html>
+//		<html>
+//		<head>
+//			<title>{{.Title}}</title>
+//		</head>
+//		<body>
+//			<h1>{{.Title}}</h1>
+//			<form method="post" action="/">
+//				<label for="username">Username:</label>
+//				<input type="text" id="username" name="username" required><br>
+//				<label for="password">Password:</label>
+//				<input type="password" id="password" name="password" required><br>
+//				<input type="submit" value="Submit">
+//			</form>
+//		</body>
+//		</html>
+//	`)
+//
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//
+//	tmpl.Execute(w, pageVariables)
+//}

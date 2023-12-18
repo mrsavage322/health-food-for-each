@@ -36,6 +36,7 @@ func main() {
 	//Хэндлеры
 	r.Get("/", internal.MainPage)
 	r.Post("/sign_in", internal.SignIn)
+	//r.Get("/ui", internal.UISignIn)
 	r.Post("/sign_up", internal.SignUp)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
