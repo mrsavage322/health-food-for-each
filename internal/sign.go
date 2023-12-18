@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/sessions"
 	"log"
 	"net/http"
 )
@@ -24,6 +25,7 @@ type Response struct {
 }
 
 var request Request
+var store = sessions.NewCookieStore([]byte("hello-it-is-my-first-project"))
 
 // Авторизация - принимаем на вход json: login - password. Парсим его, хэшируем пароль и проверяем в БД. Ответ - ОК
 
@@ -36,6 +38,7 @@ func getHash(login string, password string) []byte {
 }
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&request)
 	if err != nil {
@@ -66,6 +69,9 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		session.Values["authenticated"] = true
+		session.Save(r, w)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		//log.Println(hashPassword)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -106,4 +112,13 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseData)
+}
+
+func MainPage(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		w.Write([]byte("Добро пожаловать!"))
+	}
 }

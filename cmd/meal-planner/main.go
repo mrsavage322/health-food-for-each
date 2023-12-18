@@ -34,8 +34,7 @@ func main() {
 	//r.Use(app.AuthMiddleware)
 
 	//Хэндлеры
-	//r.Get("/", MainPage)
-
+	r.Get("/", internal.MainPage)
 	r.Post("/sign_in", internal.SignIn)
 	r.Post("/sign_up", internal.SignUp)
 	//r.Get("/info", InfoPage)
