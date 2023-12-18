@@ -23,29 +23,33 @@ type Response struct {
 	Result string
 }
 
+var request Request
+
 // Авторизация - принимаем на вход json: login - password. Парсим его, хэшируем пароль и проверяем в БД. Ответ - ОК
+
+func getHash(login string, password string) []byte {
+	hashPassword := fmt.Sprintf(login + password)
+	h := sha256.New()
+	h.Write([]byte(hashPassword))
+	hash := h.Sum(nil)
+	return hash
+}
 
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var request Request
 	err := decoder.Decode(&request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	//Формируем хэш из логина + пароля
-	hashPassword := fmt.Sprintf(request.Login + request.Password)
-	h := sha256.New()
-	h.Write([]byte(hashPassword))
-	hash := h.Sum(nil)
-	//hashPass := string(hash)
+	hashPassword := getHash(request.Login, request.Password)
 
-	pass, err := ConnectionDB.GetAuthData(context.Background(), request.Login, hash)
-	if err != nil || pass != string(hash) {
+	pass, err := ConnectionDB.GetAuthData(context.Background(), request.Login, hashPassword)
+	if err != nil {
 		log.Println(err)
 		log.Println(pass)
-		log.Println(hash)
+		//log.Println(hashPassword)
 		resp := Response{Result: "Failed!"}
 		responseData, err := json.Marshal(resp)
 		if err != nil {
@@ -62,6 +66,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		//log.Println(hashPassword)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		w.Write(responseData)
@@ -70,19 +75,15 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var request Request
 	err := decoder.Decode(&request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	hashPassword := fmt.Sprintf(request.Login + request.Password)
-	h := sha256.New()
-	h.Write([]byte(hashPassword))
-	hash := h.Sum(nil)
-	//hashPass := string(hash)
 
-	er := ConnectionDB.SetAuthData(context.Background(), request.Login, hash)
+	hashPassword := getHash(request.Login, request.Password)
+
+	er := ConnectionDB.SetAuthData(context.Background(), request.Login, hashPassword)
 	if er != nil {
 		log.Println("Login already exist")
 		resp := Response{Result: "Login already exist!"}
@@ -96,6 +97,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := Response{Result: "Success!"}
+	//log.Println(hashPassword)
 	responseData, err := json.Marshal(resp)
 	if err != nil {
 		return

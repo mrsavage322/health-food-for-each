@@ -26,7 +26,7 @@ type DBConnect struct {
 func DataBaseConnection(connection string) DBConnect {
 	pool, err := pgxpool.New(context.Background(), connection)
 	if err != nil {
-		fmt.Println("We have a error!")
+		fmt.Println("We have a error!", err)
 	}
 	//defer pool.Close()
 
@@ -95,11 +95,12 @@ func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) 
 	return nil
 }
 
-func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) (string, error) {
-	var userData string
+func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) ([]byte, error) {
+	var userData []byte
 	err := d.pool.QueryRow(ctx, "SELECT password FROM AuthUser WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
 	if err != nil {
-		return "User not exist or password was entered incorrect!", err
+		log.Println("User not exist or password was entered incorrect!")
+		return nil, err
 	}
 	return userData, err
 }
