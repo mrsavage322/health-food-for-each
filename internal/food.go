@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -20,9 +21,9 @@ type FoodData struct {
 var food FoodData
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
-	//pageVariables := PageVariables{
-	//	Title: "Add food",
-	//}
+	pageVariables := PageVariables{
+		Title: "Add food",
+	}
 
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -116,4 +117,75 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 	//}
 	//
 	//tmpl.Execute(w, pageVariables)
+	tmpl, err := template.New("add").Parse(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>{{.Title}}</title>
+		</head>
+		<body>
+			<h1>{{.Title}}</h1>
+			<form id="signupForm">
+				<label for="foodname">foodname:</label>
+				<input type="text" id="foodname" name="foodname" required><br>
+
+				<label for="proteins">proteins:</label>
+				<input type="text" id="proteins" name="proteins" required><br>
+
+				<label for="fats">fats:</label>
+				<input type="text" id="fats" name="fats" required><br>
+
+				<label for="carbs">carbs:</label>
+				<input type="text" id="carbs" name="carbs" required><br>
+
+				<label for="feature">feature:</label>
+				<input type="text" id="feature" name="feature" required><br>
+
+				<button type="button" onclick="submitForm()">Добавить!</button>
+			</form>
+
+			<script>
+				function submitForm() {
+					var foodname = document.getElementById("foodname").value;
+					var proteins = document.getElementById("proteins").value;
+					var fats = document.getElementById("fats").value;
+					var carbs = document.getElementById("carbs").value;
+					var feature = document.getElementById("feature").value;
+
+					var data = {
+						"foodname": foodname,
+						"proteins": proteins,
+						"fats": fats,
+						"carbs": carbs,
+						"feature": feature
+
+					};
+
+					fetch('/add', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(data)
+					})
+					.then(response => response.json())
+					.then(data => {
+						console.log('Ответ сервера:', data);
+						// Обработка ответа от сервера здесь
+					})
+					.catch(error => {
+						console.error('Ошибка при отправке данных:', error);
+					});
+				}
+			</script>
+		</body>
+		</html>
+	`)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tmpl.Execute(w, pageVariables)
 }
