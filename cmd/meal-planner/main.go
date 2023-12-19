@@ -16,7 +16,7 @@ var dbConnection string
 
 func main() {
 
-	dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
+	dbConnection = "postgres://postgres:@85.193.93.19:5432/kbgu"
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
@@ -51,7 +51,7 @@ func main() {
 	//r.Delete("/my-food", RemoveMyFood)
 
 	//TODO: вынести в конфиг
-	internal.ServerAddress = "localhost:8080"
+	internal.ServerAddress = "1120471-cu85037.tw1.ru:8081"
 	srv := &http.Server{
 		Addr:    internal.ServerAddress,
 		Handler: r,
