@@ -19,6 +19,7 @@ type FoodData struct {
 }
 
 var food FoodData
+var errorData bool
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	pageVariables := PageVariables{
@@ -44,54 +45,62 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 			c, _ := strconv.Atoi(food.Carbs)
 
 			if len(food.Foodname) > 50 {
+				errorData = true
 				log.Println("Too big len foodname")
 				http.Error(w, "Too big len foodname", http.StatusNotAcceptable)
 			}
-			if p > 50 {
+			if p > 100 {
+				errorData = true
 				log.Println("Too big proteins value")
 				http.Error(w, "Too big proteins value", http.StatusNotAcceptable)
 			}
-			if f > 50 {
+			if f > 100 {
+				errorData = true
 				log.Println("Too big fats value")
 				http.Error(w, "Too big fats value", http.StatusNotAcceptable)
 			}
-			if c > 50 {
+			if c > 100 {
+				errorData = true
 				log.Println("Too big carbs value")
 				http.Error(w, "Too big carbs value", http.StatusNotAcceptable)
 			}
-			if food.Feature != "мясо" {
-				log.Println("Incorrect feature")
-				http.Error(w, "Incorrect feature", http.StatusNotAcceptable)
-			}
 
-			// Починить запрос в БД
-			er := ConnectionDB.SetFoodData(context.Background(), food.Foodname, p, f, c, food.Feature)
-			if er != nil {
-				log.Println("Have a problem with input data")
-				resp := Response{Result: "We have a problem with input data!"}
-				responseData, er := json.Marshal(resp)
+			//TODO: Дописать логику проверки категории
+			//if food.Feature != "мясо" {
+			//	log.Println("Incorrect feature")
+			//	http.Error(w, "Incorrect feature", http.StatusNotAcceptable)
+			//}
+			if errorData {
+				http.Error(w, "Have a problem with input data", http.StatusNotAcceptable)
+			} else {
+				er := ConnectionDB.SetFoodData(context.Background(), food.Foodname, p, f, c, food.Feature)
 				if er != nil {
+					log.Println("Have a problem with input data")
+					resp := Response{Result: "We have a problem with input data!"}
+					responseData, er := json.Marshal(resp)
+					if er != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write(responseData)
+					return
+				}
+
+				resp := Response{Result: "Success!"}
+				responseData, err := json.Marshal(resp)
+				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusOK)
 				w.Write(responseData)
 				return
 			}
-
-			resp := Response{Result: "Success!"}
-			responseData, err := json.Marshal(resp)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(responseData)
-			return
-
 		}
+
 	}
 	// Проверяем метод запроса
 
@@ -129,6 +138,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 	//}
 	//
 	//tmpl.Execute(w, pageVariables)
+	//TODO: убрать вывод в консоль html
 	tmpl, err := template.New("add").Parse(`
 		<!DOCTYPE html>
 		<html>

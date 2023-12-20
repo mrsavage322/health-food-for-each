@@ -144,7 +144,7 @@ func (s *DBConnect) CreateFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
             id SERIAL PRIMARY KEY,
-            foodname VARCHAR,
+            foodname VARCHAR UNIQUE,
             proteins INT NOT NULL,
             fats INT NOT NULL,
             carbs INT NOT NULL,
