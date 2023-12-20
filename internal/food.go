@@ -36,11 +36,33 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+
 			fmt.Println(food.Foodname, food.Proteins, food.Fats, food.Carbs, food.Feature)
 
 			p, _ := strconv.Atoi(food.Proteins)
 			f, _ := strconv.Atoi(food.Fats)
 			c, _ := strconv.Atoi(food.Carbs)
+
+			if len(food.Foodname) > 50 {
+				log.Println("Too big len foodname")
+				http.Error(w, "Too big len foodname", http.StatusNotAcceptable)
+			}
+			if p > 50 {
+				log.Println("Too big proteins value")
+				http.Error(w, "Too big proteins value", http.StatusNotAcceptable)
+			}
+			if f > 50 {
+				log.Println("Too big fats value")
+				http.Error(w, "Too big fats value", http.StatusNotAcceptable)
+			}
+			if c > 50 {
+				log.Println("Too big carbs value")
+				http.Error(w, "Too big carbs value", http.StatusNotAcceptable)
+			}
+			if food.Feature != "мясо" {
+				log.Println("Incorrect feature")
+				http.Error(w, "Incorrect feature", http.StatusNotAcceptable)
+			}
 
 			// Починить запрос в БД
 			er := ConnectionDB.SetFoodData(context.Background(), food.Foodname, p, f, c, food.Feature)
@@ -57,16 +79,6 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 				w.Write(responseData)
 				return
 			}
-
-			//foodname := r.FormValue("foodname")
-			//proteins := r.FormValue("proteins")
-			//fats := r.FormValue("fats")
-			//carbs := r.FormValue("carbs")
-			//feature := r.FormValue("feature")
-			//
-			//p, _ := strconv.Atoi(proteins)
-			//f, _ := strconv.Atoi(fats)
-			//c, _ := strconv.Atoi(carbs)
 
 			resp := Response{Result: "Success!"}
 			responseData, err := json.Marshal(resp)
