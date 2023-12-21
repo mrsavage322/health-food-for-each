@@ -19,7 +19,7 @@ type FoodData struct {
 }
 
 var food FoodData
-var errorData bool
+var isErrorData bool
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	pageVariables := PageVariables{
@@ -45,32 +45,41 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 			c, err := strconv.Atoi(food.Carbs)
 
 			if len(food.Foodname) > 50 {
-				errorData = true
+				isErrorData = true
 				log.Println("Have a problem with input data!")
-				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
+				http.Error(w, "Have a problem with input data - too long!", http.StatusNotAcceptable)
 			}
 			if p > 100 || err != nil {
-				errorData = true
+				isErrorData = true
 				log.Println("Have a problem with input data!")
-				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
+				http.Error(w, "Have a problem with input data - proteins >100!", http.StatusNotAcceptable)
 			}
 			if f > 100 || err != nil {
-				errorData = true
+				isErrorData = true
 				log.Println("Have a problem with input data!")
-				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
+				http.Error(w, "Have a problem with input data - fats >100!", http.StatusNotAcceptable)
 			}
 			if c > 100 || err != nil {
-				errorData = true
+				isErrorData = true
 				log.Println("Have a problem with input data!")
-				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
+				http.Error(w, "Have a problem with input data - carbs >100!", http.StatusNotAcceptable)
 			}
 
-			//TODO: Дописать логику проверки категории
-			//if food.Feature != "мясо" {
-			//	log.Println("Incorrect feature")
-			//	http.Error(w, "Incorrect feature", http.StatusNotAcceptable)
-			//}
-			if errorData {
+			feature := [7]string{"мясо", "перекус", "овощ", "фрукт", "орехи", "крупа", "рыба"}
+			var isFeature = false
+			for _, v := range feature {
+				if food.Feature == v {
+					isFeature = true
+					break
+				}
+			}
+			if !isFeature {
+				log.Println("Incorrect feature")
+				incorrectFeature := fmt.Sprintf("Incorrect feature, you can use: %s", feature)
+				http.Error(w, incorrectFeature, http.StatusNotAcceptable)
+			}
+
+			if isErrorData || !isFeature {
 				http.Error(w, "Have a problem with input data", http.StatusNotAcceptable)
 			} else {
 				er := ConnectionDB.SetFoodData(context.Background(), food.Foodname, p, f, c, food.Feature)
