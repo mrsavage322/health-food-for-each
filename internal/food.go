@@ -19,7 +19,6 @@ type FoodData struct {
 }
 
 var food FoodData
-var isErrorData bool
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	pageVariables := PageVariables{
@@ -38,8 +37,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			fmt.Println(food.Foodname, food.Proteins, food.Fats, food.Carbs, food.Feature)
-
+			var isErrorData bool
 			p, err := strconv.Atoi(food.Proteins)
 			f, err := strconv.Atoi(food.Fats)
 			c, err := strconv.Atoi(food.Carbs)
@@ -111,42 +109,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	// Проверяем метод запроса
 
-	// Используем шаблон для отображения страницы
-	//tmpl, err := template.New("index").Parse(`
-	//		<!DOCTYPE html>
-	//			<html>
-	//			<head>
-	//				<title>{{.Title}}</title>
-	//			</head>
-	//			<body>
-	//				<h1>{{.Title}}</h1>
-	//				<form method="post" action="/">
-	//					<label for="foodname">Foodname:</label>
-	//					<input type="text" id="foodname" name="foodname" required><br>
-	//					<label for="proteins">Proteins:</label>
-	//					<input type="text" id="proteins" name="proteins" required><br>
-	//					<label for="fats">Fats:</label>
-	//					<input type="text" id="fats" name="fats" required><br>
-	//					<label for="carbs">Carbs:</label>
-	//					<input type="text" id="carbs" name="carbs" required><br>
-	//					<label for="feature">Feature:</label>
-	//					<input type="text" id="feature" name="feature" required><br>
-	//
-	//
-	//					<input type="submit" value="Submit">
-	//				</form>
-	//			</body>
-	//			</html>
-	//		`)
-	//
-	//if err != nil {
-	//	http.Error(w, err.Error(), http.StatusInternalServerError)
-	//	return
-	//}
-	//
-	//tmpl.Execute(w, pageVariables)
 	//TODO: убрать вывод в консоль html
 	tmpl, err := template.New("add").Parse(`
 		<!DOCTYPE html>

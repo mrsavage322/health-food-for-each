@@ -42,6 +42,7 @@ func main() {
 	r.Post("/add", internal.AddFood)
 	r.Get("/add", internal.AddFood)
 	r.Post("/settings", internal.Settings)
+	r.Get("/settings", internal.Settings)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)

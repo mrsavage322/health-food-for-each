@@ -247,6 +247,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, pageVariables)
 }
 
+// TODO: Добавить чек имеется ли конфиг и пользовтаеля
 func MainPage(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {

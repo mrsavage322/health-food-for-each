@@ -1,13 +1,14 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 )
 
 type UserData struct {
-	Login  string `json:"login"`
 	Age    string `json:"age"`
 	Height string `json:"height"`
 	Weight string `json:"weight"`
@@ -29,8 +30,85 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			fmt.Println(request.Login, userData.Age, userData.Height, userData.Weight, userData.Amount)
+			var isErrorData bool
+			age, err := strconv.Atoi(userData.Age)
+			height, err := strconv.Atoi(userData.Height)
+			weight, err := strconv.Atoi(userData.Weight)
+			amount, err := strconv.Atoi(userData.Amount)
 
+			if age > 125 || age < 12 || err != nil {
+				isErrorData = true
+				http.Error(w, "Have a problem with input data - proteins >100!", http.StatusNotAcceptable)
+			}
+			if height > 251 || height < 63 || err != nil {
+				isErrorData = true
+				http.Error(w, "Have a problem with input data - fats >100!", http.StatusNotAcceptable)
+			}
+			if weight > 635 || weight < 20 || err != nil {
+				isErrorData = true
+				http.Error(w, "Have a problem with input data - carbs >100!", http.StatusNotAcceptable)
+			}
+			if amount > 6 || amount < 3 || err != nil {
+				isErrorData = true
+				http.Error(w, "Have a problem with input data - amount must been 2,3,4,5,6!", http.StatusNotAcceptable)
+			}
+
+			if isErrorData {
+				http.Error(w, "Have a problem with input data", http.StatusNotAcceptable)
+			} else {
+				er := ConnectionDB.SetUserData(context.Background(), request.Login, age, height, weight, amount)
+				if er != nil {
+					log.Println("Have a problem with input data")
+					resp := Response{Result: "We have a problem with input data!"}
+					responseData, er := json.Marshal(resp)
+					if er != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write(responseData)
+					return
+				}
+
+				resp := Response{Result: "Success!"}
+				responseData, err := json.Marshal(resp)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				w.Write(responseData)
+				return
+			}
+		} else if r.Method == http.MethodGet {
+			getUserData, err := ConnectionDB.GetUserData(context.Background())
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			} else if len(getUserData) == 0 {
+				http.Error(w, "Empty!", http.StatusNoContent)
+				return
+			}
+			var responseUserData []UserData
+			resp := UserData{
+				Age:    getUserData["age"],
+				Height: getUserData["height"],
+				Weight: getUserData["weight"],
+				Amount: getUserData["amount"],
+			}
+			response := append(responseUserData, resp)
+
+			responseData, err := json.Marshal(response)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
 		}
 	}
 }

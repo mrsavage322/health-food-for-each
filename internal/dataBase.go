@@ -56,7 +56,7 @@ type FoodAction interface {
 
 type UserAction interface {
 	SetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
-	GetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
+	GetUserData(ctx context.Context) (map[string]string, error)
 }
 
 func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
@@ -86,15 +86,11 @@ func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) 
 }
 
 func (d *DBConnect) SetFoodData(ctx context.Context, foodname string, proteins, fats, carbs int, feature string) error {
-	err := d.pool.QueryRow(ctx, `
+	d.pool.QueryRow(ctx, `
 		INSERT INTO food (foodname, proteins, fats, carbs, feature)
 		VALUES ($1, $2, $3, $4, $5)
 	`, foodname, proteins, fats, carbs, feature)
 
-	if err != nil {
-		log.Println("Have a problem :", err)
-		return nil
-	}
 	log.Println("Food added")
 	return nil
 }
@@ -137,15 +133,27 @@ func (s *DBConnect) CreateFoodTable() error {
 }
 
 func (d *DBConnect) SetUserData(ctx context.Context, login string, age, height, weight, amount int) error {
-	err := d.pool.QueryRow(ctx, `
+	d.pool.QueryRow(ctx, `
 		UPDATE userdata SET age=$2, height=$3, weight=$4, amount=$5
 		WHERE login=$1
 	`, login, age, height, weight, amount)
 
-	if err != nil {
-		log.Println("Have a problem :", err)
-		return nil
-	}
 	log.Println("User data update!")
 	return nil
+}
+
+func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) {
+	row := d.pool.QueryRow(ctx, "SELECT age, height, weight, amount FROM userdata WHERE login = $1", request.Login)
+	userConfig := make(map[string]string)
+	var age, height, weight, amount string
+	err := row.Scan(&age, &height, &weight, &amount)
+	if err != nil {
+		return nil, err
+	}
+	userConfig["age"] = age
+	userConfig["height"] = height
+	userConfig["weight"] = weight
+	userConfig["amount"] = amount
+
+	return userConfig, nil
 }
