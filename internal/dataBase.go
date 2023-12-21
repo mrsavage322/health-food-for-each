@@ -54,33 +54,10 @@ type FoodAction interface {
 	//GetFoodData(data FoodData) error
 }
 
-//type PersonData struct {
-//	Username   string
-//	Password   string
-//	Cookie     string
-//	Age        int
-//	Height     int
-//	Weight     int
-//	Sex        int
-//	MealNubmer int
-//}
-//
-//type FoodData struct {
-//	Kcal     int
-//	Proteins int
-//	Fats     int
-//	Carbs    int
-//	Feature  string
-//}
-//
-//type FoodDataForPerson struct {
-//	Kcal     int
-//	Proteins int
-//	Fats     int
-//	Carbs    int
-//	Feature  string
-//	IsLovely bool
-//}
+type UserAction interface {
+	SetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
+	GetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
+}
 
 func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
 	err := d.pool.QueryRow(ctx, `
@@ -156,5 +133,19 @@ func (s *DBConnect) CreateFoodTable() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (d *DBConnect) SetUserData(ctx context.Context, login string, age, height, weight, amount int) error {
+	err := d.pool.QueryRow(ctx, `
+		UPDATE userdata SET age=$2, height=$3, weight=$4, amount=$5
+		WHERE login=$1
+	`, login, age, height, weight, amount)
+
+	if err != nil {
+		log.Println("Have a problem :", err)
+		return nil
+	}
+	log.Println("User data update!")
 	return nil
 }

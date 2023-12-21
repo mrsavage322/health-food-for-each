@@ -40,29 +40,29 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 
 			fmt.Println(food.Foodname, food.Proteins, food.Fats, food.Carbs, food.Feature)
 
-			p, _ := strconv.Atoi(food.Proteins)
-			f, _ := strconv.Atoi(food.Fats)
-			c, _ := strconv.Atoi(food.Carbs)
+			p, err := strconv.Atoi(food.Proteins)
+			f, err := strconv.Atoi(food.Fats)
+			c, err := strconv.Atoi(food.Carbs)
 
 			if len(food.Foodname) > 50 {
 				errorData = true
-				log.Println("Too big len foodname")
-				http.Error(w, "Too big len foodname", http.StatusNotAcceptable)
+				log.Println("Have a problem with input data!")
+				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
 			}
-			if p > 100 {
+			if p > 100 || err != nil {
 				errorData = true
-				log.Println("Too big proteins value")
-				http.Error(w, "Too big proteins value", http.StatusNotAcceptable)
+				log.Println("Have a problem with input data!")
+				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
 			}
-			if f > 100 {
+			if f > 100 || err != nil {
 				errorData = true
-				log.Println("Too big fats value")
-				http.Error(w, "Too big fats value", http.StatusNotAcceptable)
+				log.Println("Have a problem with input data!")
+				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
 			}
-			if c > 100 {
+			if c > 100 || err != nil {
 				errorData = true
-				log.Println("Too big carbs value")
-				http.Error(w, "Too big carbs value", http.StatusNotAcceptable)
+				log.Println("Have a problem with input data!")
+				http.Error(w, "Have a problem with input data!", http.StatusNotAcceptable)
 			}
 
 			//TODO: Дописать логику проверки категории
