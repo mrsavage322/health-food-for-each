@@ -21,9 +21,16 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	height, err := strconv.ParseFloat(getUserData["height"], 3)
 	weight, err := strconv.ParseFloat(getUserData["weight"], 3)
 	newAmount, err = strconv.Atoi(getUserData["amount"])
+	gender := getUserData["gender"]
 
 	log.Println(age, height, weight, newAmount, k)
-	kcalNorm := (10 * weight) + (6.25 * height) - (5 * age)
+
+	var kcalNorm float64
+	if gender != "M" {
+		kcalNorm = (10 * weight) + (6.25 * height) - (5 * age) + 5
+	} else {
+		kcalNorm = (10 * weight) + (6.25 * height) - (5 * age) - 161
+	}
 
 	proteinsNorm = kcalNorm * 0.23 / 4
 	fatsNorm = kcalNorm * 0.3 / 9
