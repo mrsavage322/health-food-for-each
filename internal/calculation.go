@@ -3,33 +3,28 @@ package internal
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
+	"strconv"
 )
 
-// TODO: Дописать логику расчета нормы БЖУ
-func DayCalculation(data map[string]string) (map[string]string, error) {
-	req, err := http.NewRequest("GET", "http://localhost:8080/settings", nil)
-	if err != nil {
-		log.Println("Have a problem with GET request", err)
-		return nil, err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Ошибка при отправке запроса:", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-	return nil, nil
-}
-
-func DayNewCalculation() (map[string]string, error) {
+func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	getUserData, err := ConnectionDB.GetUserData(context.Background())
 	if err != nil {
-		return nil, err
+		return
 	}
+
+	age, err := strconv.ParseFloat(getUserData["age"], 3)
+	height, err := strconv.ParseFloat(getUserData["height"], 3)
+	weight, err := strconv.ParseFloat(getUserData["weight"], 3)
+	amount, err := strconv.ParseFloat(getUserData["amount"], 3)
+
+	k := 1.2
+	fmt.Println(age, height, weight, amount, k)
+	kcalNorm := ((10 * weight) + (6.25 * height) - (5 * age)) * k
+	proteinsNorm = kcalNorm * 0.23
+	fatsNorm = kcalNorm * 0.3
+	carbsNorm = kcalNorm * 0.5
+
+	return proteinsNorm, fatsNorm, carbsNorm
 
 	//set := UserData{
 	//	Age:    getUserData["age"],
@@ -39,5 +34,15 @@ func DayNewCalculation() (map[string]string, error) {
 	//}
 	//fmt.Println(set)
 	//response := append(responseUserData, resp)
+	//basic man = (10 * weight) + (6.25 * height) - (5 * age) + 5 * koef
+	//basic woman = (10 * weight) + (6.25 * height) - (5 * age) - 161 * koef
+	//koef = 1.15
+	// prot = 1.4 fat = 0.8 carbs = 2.8
+	//protein norm = basic * 0.23  fats * 0.3  carbs * 0.47
+
+}
+
+func CreatePlanForDay() {
+	DayNewCalculation()
 
 }
