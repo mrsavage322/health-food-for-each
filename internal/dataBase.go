@@ -102,6 +102,7 @@ func (s *DBConnect) CreateAuthTable() error {
             id SERIAL PRIMARY KEY,
             login VARCHAR UNIQUE NOT NULL,
             password BYTEA NOT NULL,
+            gender VARCHAR,
             age INT,
             height INT,
             weight INT,
@@ -133,21 +134,21 @@ func (s *DBConnect) CreateFoodTable() error {
 	return nil
 }
 
-func (d *DBConnect) SetUserData(ctx context.Context, login string, age, height, weight, amount int) error {
+func (d *DBConnect) SetUserData(ctx context.Context, login, gender string, age, height, weight, amount int) error {
 	d.pool.QueryRow(ctx, `
-		UPDATE userdata SET age=$2, height=$3, weight=$4, amount=$5
+		UPDATE userdata SET age=$2, gender=$3, height=$4, weight=$5, amount=$6
 		WHERE login=$1
-	`, login, age, height, weight, amount)
+	`, login, age, gender, height, weight, amount)
 
 	log.Println("User data update!")
 	return nil
 }
 
 func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) {
-	row := d.pool.QueryRow(ctx, "SELECT age, height, weight, amount FROM userdata WHERE login = $1", request.Login)
+	row := d.pool.QueryRow(ctx, "SELECT age, gender, height, weight, amount FROM userdata WHERE login = $1", request.Login)
 	userConfig := make(map[string]string)
-	var age, height, weight, amount string
-	err := row.Scan(&age, &height, &weight, &amount)
+	var age, gender, height, weight, amount string
+	err := row.Scan(&age, &gender, &height, &weight, &amount)
 	if err != nil {
 		return nil, err
 	}
@@ -155,19 +156,20 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 	userConfig["height"] = height
 	userConfig["weight"] = weight
 	userConfig["amount"] = amount
+	userConfig["gender"] = gender
 
 	return userConfig, nil
 }
 
-func (d *DBConnect) GetBreakfast(ctx context.Context) (map[string]float64, error) {
-	row := d.pool.QueryRow(ctx, "SELECT proteins, fats, carbs FROM food WHERE login = $1 AND feature = $2", request.Login, "завтрак")
-	breakfast := make(map[string]float64)
-	var proteins, fats, carbs float64
-	err := row.Scan(&proteins, &fats, &carbs)
-	if err != nil {
-		return nil, err
-	}
-	breakfast["proteins"] = proteins
-	breakfast["fats"] = fats
-	breakfast["carbs"] = carbs
-}
+//func (d *DBConnect) GetBreakfast(ctx context.Context) (map[string]float64, error) {
+//	row := d.pool.QueryRow(ctx, "SELECT proteins, fats, carbs FROM food WHERE login = $1 AND feature = $2", request.Login, "завтрак")
+//	breakfast := make(map[string]float64)
+//	var proteins, fats, carbs float64
+//	err := row.Scan(&proteins, &fats, &carbs)
+//	if err != nil {
+//		return nil, err
+//	}
+//	breakfast["proteins"] = proteins
+//	breakfast["fats"] = fats
+//	breakfast["carbs"] = carbs
+//}

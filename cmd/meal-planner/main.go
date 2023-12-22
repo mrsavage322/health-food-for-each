@@ -52,7 +52,6 @@ func main() {
 	//r.Post("/my-food", AddToMyFood)
 	//r.Delete("/my-food", RemoveMyFood)
 
-	internal.DayNewCalculation()
 	//TODO: вынести в конфиг
 	internal.ServerAddress = ":8080"
 	srv := &http.Server{

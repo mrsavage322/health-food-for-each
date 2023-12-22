@@ -3,12 +3,14 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 )
 
 type UserData struct {
+	Gender string `json:"gender"`
 	Age    string `json:"age"`
 	Height string `json:"height"`
 	Weight string `json:"weight"`
@@ -31,11 +33,17 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			}
 
 			var isErrorData bool
+
+			gender := userData.Gender
 			age, err := strconv.Atoi(userData.Age)
 			height, err := strconv.Atoi(userData.Height)
 			weight, err := strconv.Atoi(userData.Weight)
 			amount, err := strconv.Atoi(userData.Amount)
 
+			if gender != "M" && gender != "F" {
+				isErrorData = true
+				http.Error(w, "Have a problem with input data - we need a correct gender: M or F!", http.StatusNotAcceptable)
+			}
 			if age > 125 || age < 12 || err != nil {
 				isErrorData = true
 				http.Error(w, "Have a problem with input data - proteins >100!", http.StatusNotAcceptable)
@@ -56,7 +64,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			if isErrorData {
 				http.Error(w, "Have a problem with input data", http.StatusNotAcceptable)
 			} else {
-				er := ConnectionDB.SetUserData(context.Background(), request.Login, age, height, weight, amount)
+				er := ConnectionDB.SetUserData(context.Background(), request.Login, gender, age, height, weight, amount)
 				if er != nil {
 					log.Println("Have a problem with input data")
 					resp := Response{Result: "We have a problem with input data!"}
@@ -65,6 +73,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					}
+					log.Println(age, gender, height, weight, amount)
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write(responseData)
@@ -93,6 +102,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			}
 			var responseUserData []UserData
 			resp := UserData{
+				Gender: getUserData["gender"],
 				Age:    getUserData["age"],
 				Height: getUserData["height"],
 				Weight: getUserData["weight"],
@@ -105,6 +115,8 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
+			fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)

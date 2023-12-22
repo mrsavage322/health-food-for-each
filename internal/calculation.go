@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -21,11 +22,12 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	weight, err := strconv.ParseFloat(getUserData["weight"], 3)
 	newAmount, err = strconv.Atoi(getUserData["amount"])
 
-	fmt.Println(age, height, weight, newAmount, k)
-	kcalNorm := ((10 * weight) + (6.25 * height) - (5 * age)) * k
-	proteinsNorm = kcalNorm * 0.23
-	fatsNorm = kcalNorm * 0.3
-	carbsNorm = kcalNorm * 0.5
+	log.Println(age, height, weight, newAmount, k)
+	kcalNorm := (10 * weight) + (6.25 * height) - (5 * age)
+
+	proteinsNorm = kcalNorm * 0.23 / 4
+	fatsNorm = kcalNorm * 0.3 / 9
+	carbsNorm = kcalNorm * 0.5 / 4
 
 	return proteinsNorm, fatsNorm, carbsNorm
 
