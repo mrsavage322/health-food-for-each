@@ -57,6 +57,7 @@ type FoodAction interface {
 type UserAction interface {
 	SetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
 	GetUserData(ctx context.Context) (map[string]string, error)
+	//Get(ctx context.Context, age, height, weight int) error
 }
 
 func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
