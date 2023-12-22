@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+const k = 1.2
+
+var newAmount int
+
 func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	getUserData, err := ConnectionDB.GetUserData(context.Background())
 	if err != nil {
@@ -15,10 +19,9 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	age, err := strconv.ParseFloat(getUserData["age"], 3)
 	height, err := strconv.ParseFloat(getUserData["height"], 3)
 	weight, err := strconv.ParseFloat(getUserData["weight"], 3)
-	amount, err := strconv.ParseFloat(getUserData["amount"], 3)
+	newAmount, err = strconv.Atoi(getUserData["amount"])
 
-	k := 1.2
-	fmt.Println(age, height, weight, amount, k)
+	fmt.Println(age, height, weight, newAmount, k)
 	kcalNorm := ((10 * weight) + (6.25 * height) - (5 * age)) * k
 	proteinsNorm = kcalNorm * 0.23
 	fatsNorm = kcalNorm * 0.3
@@ -43,6 +46,15 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 }
 
 func CreatePlanForDay() {
-	DayNewCalculation()
+	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
+	fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
+	if newAmount == 3 {
 
+	} else if newAmount == 4 {
+
+	} else if newAmount == 5 {
+
+	} else if newAmount == 6 {
+
+	}
 }
