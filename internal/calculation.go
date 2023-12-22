@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,4 +23,21 @@ func DayCalculation(data map[string]string) (map[string]string, error) {
 	}
 	defer resp.Body.Close()
 	return nil, nil
+}
+
+func DayNewCalculation() (map[string]string, error) {
+	getUserData, err := ConnectionDB.GetUserData(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	//set := UserData{
+	//	Age:    getUserData["age"],
+	//	Height: getUserData["height"],
+	//	Weight: getUserData["weight"],
+	//	Amount: getUserData["amount"],
+	//}
+	//fmt.Println(set)
+	//response := append(responseUserData, resp)
+
 }
