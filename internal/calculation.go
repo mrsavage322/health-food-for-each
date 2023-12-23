@@ -76,7 +76,7 @@ func CalculateBreakfast(w http.ResponseWriter, r *http.Request) {
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
 	} else {
-		if r.Method == http.MethodPost {
+		if r.Method == http.MethodGet {
 			err := CreateMealForBreakast()
 			if err != nil {
 				log.Println("Failed to create meal for breakfast")

@@ -43,7 +43,7 @@ func main() {
 	r.Get("/add", internal.AddFood)
 	r.Post("/settings", internal.Settings)
 	r.Get("/settings", internal.Settings)
-	r.Post("/calculate/breakfast", internal.CalculateBreakfast)
+	r.Get("/calc/breakfast", internal.CalculateBreakfast)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)
