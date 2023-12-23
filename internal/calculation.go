@@ -2,8 +2,10 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 )
 
@@ -56,12 +58,47 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 }
 
 // Расчет приема пищи
-func CreateMealForLunch() {
+func CreateMealForBreakast() error {
 	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
+	//koef := 0.35
 	fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
+	getFoodData, err := ConnectionDB.CreateMealForLunch(context.Background())
+	if err != nil {
+		log.Println("Dont get fooddata!")
+		return err
+	}
+	log.Println(getFoodData)
+	return nil
+}
+
+func CalculateBreakfast(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodPost {
+			err := CreateMealForBreakast()
+			if err != nil {
+				log.Println("Failed to create meal for breakfast")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			resp := Response{Result: "Success!"}
+			responseData, err := json.Marshal(resp)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		}
+	}
 
 }
 
-//Расчет приема пищи на завтрак
+//Расчет приема пищи на обед, ужин
 
 //Расчет приема пищи на перекус
