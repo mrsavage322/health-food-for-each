@@ -59,14 +59,53 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 
 // Расчет приема пищи
 func CreateMealForBreakast() error {
+	var proteinForMeal float64
 	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
-	//koef := 0.35
 	fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
 	getFoodData, err := ConnectionDB.CreateMealForLunch(context.Background())
 	if err != nil {
 		log.Println("Dont get fooddata!")
 		return err
 	}
+
+	//xyz := make(map[string]string)
+
+	//TODO: Переписать циклом
+	firstProduct := getFoodData[0]
+	x := firstProduct["foodname"]
+	x1 := firstProduct["proteins"]
+	x2 := firstProduct["fats"]
+	x3 := firstProduct["carbs"]
+
+	secondProduct := getFoodData[1]
+	y := secondProduct["foodname"]
+	y1 := secondProduct["proteins"]
+	y2 := secondProduct["fats"]
+	y3 := secondProduct["carbs"]
+
+	thirdProduct := getFoodData[2]
+	z := thirdProduct["foodname"]
+	z1 := thirdProduct["proteins"]
+	z2 := thirdProduct["fats"]
+	z3 := thirdProduct["carbs"]
+
+	//TODO: Вынести кэфы
+	if x1 > y1 && x1 > z1 {
+		proteinForMeal = x1*0.7 + y1*0.15 + z*0.15
+	} else if y1 > x2 && y1 > z1 {
+		proteinForMeal = x1*0.15 + y1*0.7 + z*0.15
+	} else {
+		proteinForMeal = x1*0.15 + y1*0.15 + z*0.7
+	}
+
+	if proteinsNorm-proteinForMeal > 2 {
+		//Пересчитывает умнажая на 2
+	} else if proteinsNorm-proteinForMeal < 0 {
+		//Пересчитывает деля на 2
+	} else {
+		//WIN
+	}
+
 	log.Println(getFoodData)
 	return nil
 }
