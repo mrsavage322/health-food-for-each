@@ -11,6 +11,7 @@ const k = 1.2
 
 var newAmount int
 
+// Расчет КБЖУ на день
 func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	getUserData, err := ConnectionDB.GetUserData(context.Background())
 	if err != nil {
@@ -26,7 +27,7 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 	log.Println(age, height, weight, newAmount, k)
 
 	var kcalNorm float64
-	if gender != "M" {
+	if gender == "M" {
 		kcalNorm = (10 * weight) + (6.25 * height) - (5 * age) + 5
 	} else {
 		kcalNorm = (10 * weight) + (6.25 * height) - (5 * age) - 161
@@ -54,16 +55,13 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 
 }
 
-func CreatePlanForDay() {
+// Расчет приема пищи
+func CreateMealForLunch() {
 	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
 	fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
-	if newAmount == 3 {
 
-	} else if newAmount == 4 {
-
-	} else if newAmount == 5 {
-
-	} else if newAmount == 6 {
-
-	}
 }
+
+//Расчет приема пищи на завтрак
+
+//Расчет приема пищи на перекус
