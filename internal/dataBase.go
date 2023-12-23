@@ -175,7 +175,7 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 //}
 
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) (map[string]float64, error) {
-	row := d.pool.QueryRow(ctx, `
+	rows, err := d.pool.Query(ctx, `
 		(
 			SELECT foodname, proteins, fats, carbs 
 			FROM food
@@ -197,7 +197,13 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) (map[string]float64,
 		LIMIT 3;
 			   `, request.Login)
 
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	lunch := make(map[string]float64)
+
 	var proteins, fats, carbs float64
 	err := row.Scan(&proteins, &fats, &carbs)
 	if err != nil {
