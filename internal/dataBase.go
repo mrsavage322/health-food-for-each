@@ -177,7 +177,7 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT foodname, proteins, fats, carbs 
+			SELECT proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
 			   AND (feature IN ('завтрак', 'перекус') AND isLoved IS NULL)
@@ -186,7 +186,7 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
+			SELECT proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'фрукт'
@@ -205,13 +205,13 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 	var lunches []map[string]float64
 
 	for rows.Next() {
-		var foodname, proteins, fats, carbs float64
-		err := rows.Scan(&foodname, &proteins, &fats, &carbs)
+		var proteins, fats, carbs float64
+		err := rows.Scan(&proteins, &fats, &carbs)
 		if err != nil {
 			return nil, err
 		}
 		lunch := make(map[string]float64)
-		lunch["foodname"] = foodname
+		//lunch["foodname"] = foodname
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
