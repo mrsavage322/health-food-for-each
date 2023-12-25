@@ -104,9 +104,11 @@ func CreateMealForBreakast() error {
 
 	//TODO: Вынести кэфы
 	if x1 > y1 && x1 > z1 {
-		log.Println(resultProtein, resultProtein*0.7, resultProtein*0.15, resultProtein*0.15)
-		log.Println(resultFats, resultFats*0.7, resultFats*0.15, resultFats*0.15)
-		log.Println(resultCarbs, resultCarbs*0.7, resultCarbs*0.15, resultCarbs*0.15)
+		//Сколько неужно КБЖУ на порцию каждого продукта
+		log.Println("REAL RESULT:")
+		log.Println(resultProtein, resultProtein*0.7*100/x1, resultProtein*0.15*100/y1, resultProtein*0.15*100/z1)
+		log.Println(resultFats, resultFats*0.7*100/x2, resultFats*0.15*100/y2, resultFats*0.15*100/z2)
+		log.Println(resultCarbs, resultCarbs*0.7*100/x3, resultCarbs*0.15*100/y3, resultCarbs*0.15*100/z3)
 
 		//proteinForMeal = x1*0.7 + y1*0.15 + z1*0.15
 		//fatForMeal = x2*0.7 + y2*0.15 + z2*0.15
