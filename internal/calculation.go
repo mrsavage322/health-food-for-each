@@ -234,6 +234,6 @@ func getCarbsForMeal(carbsNorm float64) float64 {
 	return carbsForMeal
 }
 
-//Расчет приема пищи на обед, ужин
+//Расчет приема пищи на обед, ужинА
 
 //Расчет приема пищи на перекус

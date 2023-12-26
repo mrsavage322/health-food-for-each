@@ -22,7 +22,6 @@ type DBConnect struct {
 	error
 }
 
-// TODO: инит бд один раз
 func DataBaseConnection(connection string) DBConnect {
 	pool, err := pgxpool.New(context.Background(), connection)
 	if err != nil {
