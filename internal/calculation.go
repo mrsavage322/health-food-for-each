@@ -40,7 +40,7 @@ func DayNewCalculation() (proteinsNorm, fatsNorm, carbsNorm float64) {
 
 	proteinsNorm = kcalNorm * 0.23 / 4
 	fatsNorm = kcalNorm * 0.3 / 9
-	carbsNorm = kcalNorm * 0.5 / 4
+	carbsNorm = kcalNorm * 0.47 / 4
 
 	return proteinsNorm, fatsNorm, carbsNorm
 
@@ -168,6 +168,7 @@ func CalculateBreakfast(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			ForOneMealCalc()
 			resp := Response{Result: "Success!"}
 			responseData, err := json.Marshal(resp)
 			if err != nil {
@@ -239,3 +240,66 @@ func getCarbsForMeal(carbsNorm float64) float64 {
 //Расчет приема пищи на обед, ужин
 
 //Расчет приема пищи на перекус
+
+type Product struct {
+	x float64
+	y float64
+	z float64
+}
+
+func ForOneMealCalc() (gramP, gramF, gramC float64) {
+	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
+
+	getFoodData, err := ConnectionDB.CreateMealForLunch(context.Background())
+	if err != nil {
+		log.Println("Dont get fooddata!")
+		return 0, 0, 0
+	}
+
+	firstMap := getFoodData[0]
+	firstProduct := Product{firstMap["proteins"], firstMap["fats"], firstMap["carbs"]}
+
+	secondMap := getFoodData[1]
+	secondProduct := Product{secondMap["proteins"], secondMap["fats"], secondMap["carbs"]}
+
+	thirdMap := getFoodData[2]
+	thirdProduct := Product{thirdMap["proteins"], thirdMap["fats"], thirdMap["carbs"]}
+
+	pullX := firstProduct.x + secondProduct.x + thirdProduct.x
+	pullY := firstProduct.y + secondProduct.y + thirdProduct.y
+	pullZ := firstProduct.z + secondProduct.z + thirdProduct.z
+
+	pullProduct := Product{pullX, pullY, pullZ}
+
+	for proteinsNorm*0.35-pullProduct.x > 2 || fatsNorm*0.35-pullProduct.y > 2 || carbsNorm*0.35-pullProduct.z > 2 {
+		resultProduct := Product{}
+		MinusProduct.Minus(firstProduct, pullProduct, resultProduct)
+		if pullProduct.x < 2 && pullProduct.y < 2 {
+			if firstProduct.x < 2 || firstProduct.y < 2 {
+				resultProduct.z = pullZ - firstProduct.z
+			}
+			if secondProduct.x < 2 || secondProduct.y < 2 {
+				resultProduct.z = pullZ - secondProduct.z
+			}
+			if thirdProduct.x < 2 || thirdProduct.y < 2 {
+				resultProduct.z = pullZ - thirdProduct.z
+			}
+		}
+
+	}
+
+	//fmt.Println(firstProduct, secondProduct, thirdProduct)
+	return 0, 0, 0
+}
+
+func (p Product) Minus(product, pullProduct Product) Product {
+	outputProduct := p
+	outputProduct.x = pullProduct.x - product.x*0.01
+	outputProduct.y = pullProduct.y - product.y*0.01
+	outputProduct.z = pullProduct.z - product.z*0.01
+	return outputProduct
+}
+
+type MinusProduct interface {
+	Minus(product, pullProduct Product) Product
+}
