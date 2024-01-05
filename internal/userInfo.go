@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -115,8 +114,6 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
-			fmt.Println(proteinsNorm, fatsNorm, carbsNorm)
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
