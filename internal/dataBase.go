@@ -177,20 +177,29 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT proteins, fats, carbs 
+			SELECT foodname, proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
-			   AND (feature IN ('завтрак', 'перекус') AND isLoved IS NULL)
+			   AND (feature = 'завтрак' AND isLoved IS NULL AND proteins > 10)
 			   ORDER BY RANDOM()
-			   LIMIT 2
+			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT proteins, fats, carbs 
+			SELECT foodname, proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
-				AND feature = 'фрукт'
-				AND isLoved IS NULL
+			   AND (feature = 'перекус' AND isLoved IS NULL)
+			   ORDER BY RANDOM()
+			   LIMIT 1
+		)
+		UNION ALL
+		(
+			SELECT foodname, proteins, fats, carbs 
+			FROM food
+			WHERE (login = $1 OR login IS NULL)
+				AND (feature = 'фрукт'
+				AND isLoved IS NULL)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
@@ -203,11 +212,17 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 	defer rows.Close()
 
 	var lunches []map[string]float64
+	var foodNamesMap []map[string]map[string]float64
 
 	for rows.Next() {
 		var proteins, fats, carbs float64
+		var foodname string
 		err := rows.Scan(&proteins, &fats, &carbs)
 		if err != nil {
+			return nil, err
+		}
+		er := rows.Scan(&foodname)
+		if er != nil {
 			return nil, err
 		}
 		lunch := make(map[string]float64)
@@ -216,6 +231,12 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
 		lunches = append(lunches, lunch)
+
+		foodNameMap := make(map[])
+
+
+
+
 	}
 	return lunches, nil
 }
