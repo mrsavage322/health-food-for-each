@@ -16,7 +16,7 @@ var dbConnection string
 
 func main() {
 
-	dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
+	dbConnection = "postgres://postgres:@localhost:5432/kbgu"
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
