@@ -174,7 +174,7 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 //	breakfast["carbs"] = carbs
 //}
 
-func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, error) {
+func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
 			SELECT foodname, proteins, fats, carbs 
@@ -207,36 +207,29 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 			   `, request.Login)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
 	var lunches []map[string]float64
-	var foodNamesMap []map[string]map[string]float64
+	var foodNames []string
 
 	for rows.Next() {
 		var proteins, fats, carbs float64
 		var foodname string
-		err := rows.Scan(&proteins, &fats, &carbs)
+		err := rows.Scan(&foodname, &proteins, &fats, &carbs)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		er := rows.Scan(&foodname)
-		if er != nil {
-			return nil, err
-		}
+
 		lunch := make(map[string]float64)
 		//lunch["foodname"] = foodname
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
 		lunches = append(lunches, lunch)
-
-		foodNameMap := make(map[])
-
-
-
-
+		foodNames = append(foodNames, foodname)
 	}
-	return lunches, nil
+
+	return lunches, foodNames, nil
 }

@@ -160,19 +160,29 @@ func CalculateBreakfast(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
 	} else {
 		if r.Method == http.MethodGet {
-			err := getBreakfast()
+			breakfast, err := getBreakfast()
 			if err != nil {
 				log.Println("Failed to create meal for breakfast")
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			resp := Response{Result: "Success!"}
-			responseData, err := json.Marshal(resp)
+			responseData, err := json.Marshal(breakfast)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+
+			//w.Header().Set("Content-Type", "application/json")
+			//w.WriteHeader(http.StatusOK)
+			//w.Write(responseData)
+
+			//resp := Response{Result: "Success!"}
+			//responseData, err := json.Marshal(resp)
+			//if err != nil {
+			//	http.Error(w, err.Error(), http.StatusInternalServerError)
+			//	return
+			//}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			w.Write(responseData)
@@ -308,28 +318,31 @@ func CalculateBreakfast(w http.ResponseWriter, r *http.Request) {
 //	getDinner()
 //}
 
-func getBreakfast() error {
+func getBreakfast() ([]map[string]float64, error) {
 	proteinsNorm, fatsNorm, carbsNorm := DayNewCalculation()
-	getFoodData, err := ConnectionDB.CreateMealForLunch(context.Background())
+	getFoodData, getFoodName, err := ConnectionDB.CreateMealForLunch(context.Background())
 	if err != nil {
 		log.Println("Dont get fooddata!")
-		return err
+		return nil, err
 	}
 
 	firstProduct := getFoodData[0]
 	x1 := firstProduct["proteins"]
 	x2 := firstProduct["fats"]
 	x3 := firstProduct["carbs"]
+	xName := getFoodName[0]
 
 	secondProduct := getFoodData[1]
 	y1 := secondProduct["proteins"]
 	y2 := secondProduct["fats"]
 	y3 := secondProduct["carbs"]
+	yName := getFoodName[1]
 
 	thirdProduct := getFoodData[2]
 	z1 := thirdProduct["proteins"]
 	z2 := thirdProduct["fats"]
 	z3 := thirdProduct["carbs"]
+	zName := getFoodName[2]
 
 	forBreakfastProtein := 0.0
 	forBreakfastFat := 0.0
@@ -337,10 +350,6 @@ func getBreakfast() error {
 
 	var counterFirst float64
 	var counterSecond float64
-
-	log.Println(x1, x2, x3)
-	log.Println(y1, y2, y3)
-	log.Println(z1, z2, z3)
 
 	for (proteinsNorm*0.25-forBreakfastProtein > 1 && fatsNorm*0.2-forBreakfastFat > 1) && carbsNorm*0.35*0.9-forBreakfastCarb > 1 {
 		log.Println(forBreakfastCarb)
@@ -360,8 +369,19 @@ func getBreakfast() error {
 	secondProductProductGram := counterFirst
 	thirdsProductGram := counterSecond
 
-	log.Println(firstProductGram, secondProductProductGram, thirdsProductGram)
-	log.Println(proteinsNorm-forBreakfastProtein, fatsNorm-forBreakfastFat, carbsNorm-forBreakfastCarb, counterFirst, counterSecond)
+	var foodsData []map[string]float64
 
-	return nil
+	log.Println(firstProductGram, secondProductProductGram, thirdsProductGram)
+	log.Println(xName, yName, zName)
+	log.Println(proteinsNorm*0.25-forBreakfastProtein, fatsNorm*0.2-forBreakfastFat, carbsNorm*0.35-forBreakfastCarb, counterFirst, counterSecond)
+
+	foodData := make(map[string]float64)
+
+	foodData[xName] = firstProductGram
+	foodData[yName] = secondProductProductGram
+	foodData[zName] = thirdsProductGram
+
+	foodsData = append(foodsData, foodData)
+
+	return foodsData, nil
 }
