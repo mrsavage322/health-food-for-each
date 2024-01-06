@@ -45,6 +45,7 @@ func main() {
 	r.Get("/settings", internal.Settings)
 	r.Get("/calc/breakfast", internal.CalculateBreakfast)
 	r.Get("/calc/dinner", internal.CalculateDinner)
+	r.Get("/calc/lunch", internal.CalculateLunch)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)
