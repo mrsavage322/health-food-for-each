@@ -421,3 +421,90 @@ func getLunch() ([]map[string]float64, error) {
 
 	return foodsData, nil
 }
+
+func CalculateDay(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodGet {
+			breakfast, err := getBreakfast()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			dinner, err := getDinner()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			lunch, err := getLunch()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var dayMeal [][]map[string]float64
+			dayMeal = append(dayMeal, breakfast, dinner, lunch)
+
+			responseData, err := json.Marshal(dayMeal)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		}
+	}
+
+}
+
+func CalculateDayTwo(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodGet {
+			breakfast, err := getBreakfast()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			dinner, err := getDinner()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			lunch, err := getLunch()
+			if err != nil {
+				log.Println("Failed to create meal for day")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var dayMeal [][]map[string]float64
+			dayMeal = append(dayMeal, breakfast, dinner, lunch)
+
+			responseData, err := json.Marshal(dayMeal)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		}
+	}
+
+}
