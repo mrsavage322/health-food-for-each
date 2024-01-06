@@ -20,7 +20,6 @@ func main() {
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
-
 	//Подключение к БД
 	//var once sync.Once
 	//once.Do(func() {

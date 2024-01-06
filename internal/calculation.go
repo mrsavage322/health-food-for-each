@@ -338,61 +338,74 @@ func getLunch() ([]map[string]float64, error) {
 	bName := getFoodName[4]
 
 	sixthProduct := getFoodData[5]
-	c1 := fifthProduct["proteins"]
-	c2 := fifthProduct["fats"]
-	c3 := fifthProduct["carbs"]
+	c1 := sixthProduct["proteins"]
+	c2 := sixthProduct["fats"]
+	c3 := sixthProduct["carbs"]
 	cName := getFoodName[5]
 
-	forDinnerProtein := 0.0
-	forDinnerFat := 0.0
-	forDinnerCarb := 0.0
+	forLunchProtein := 0.0
+	forLunchFat := 0.0
+	forLunchCarb := 0.0
 
 	var counterFirst float64
 	var counterSecond float64
 	var counterThird float64
 	var counterFourth float64
 	var counterFifth float64
-	var counterSixth float64
+	//var counterSixth float64
 
-	for n.ProteinsNorm*0.35*0.9-forDinnerProtein > 1 {
-		forDinnerProtein += x1 * 0.01
-		forDinnerFat += x2 * 0.01
-		forDinnerCarb += x3 * 0.01
-		counterFirst += 1
+	for counterFirst < 120 {
+		forLunchProtein += c1 * 0.2
+		forLunchFat += c2 * 0.2
+		forLunchCarb += c3 * 0.20
+		counterFirst += 20
 	}
-	for n.CarbsNorm*0.2*0.9-forDinnerCarb > 1 {
-		forDinnerProtein += y1 * 0.01
-		forDinnerFat += y2 * 0.01
-		forDinnerCarb += y3 * 0.01
-		counterSecond += 1
+
+	for counterSecond < 200 {
+		forLunchProtein += b1 * 0.5
+		forLunchFat += b2 * 0.5
+		forLunchCarb += b3 * 0.5
+		counterSecond += 50
 	}
-	for n.FatsNorm*0.25-forDinnerFat > 1 {
-		forDinnerProtein += z1 * 0.01
-		forDinnerFat += z2 * 0.01
-		forDinnerCarb += z3 * 0.01
+
+	for n.ProteinsNorm-forLunchProtein > 5 {
+		log.Println(n.ProteinsNorm)
+		forLunchProtein += x1 * 0.01
+		forLunchFat += x2 * 0.01
+		forLunchCarb += x3 * 0.01
 		counterThird += 1
 	}
-	for counterFourth < 250 {
-		forDinnerProtein += a1 * 0.01
-		forDinnerFat += a2 * 0.01
-		forDinnerCarb += a3 * 0.01
+
+	for n.CarbsNorm-forLunchCarb > 2 {
+		forLunchProtein += y1 * 0.01
+		forLunchFat += y2 * 0.01
+		forLunchCarb += y3 * 0.01
 		counterFourth += 1
 	}
 
-	firstProductGram := counterFirst
-	secondProductGram := counterSecond
+	for n.FatsNorm-forLunchFat > 1 {
+		forLunchProtein += z1*0.02 + a1*0.01
+		forLunchFat += z2*0.02 + a2*0.01
+		forLunchCarb += z3*0.02 + a3*0.01
+		counterFifth += 1
+	}
+
+	firstProductGram := counterThird
+	secondProductGram := counterFourth
 	thirdsProductGram := counterThird
 	fourthProductGram := counterFourth
+	fifthProductGram := counterFifth * 2
+	sixthProductGram := counterFifth
 
 	var foodsData []map[string]float64
 
-	log.Println(firstProductGram, secondProductGram, thirdsProductGram, fourthProductGram)
+	//log.Println(firstProductGram, secondProductGram, thirdsProductGram, fourthProductGram)
 	log.Println(xName, yName, zName, aName)
 	log.Println(n.ProteinsNorm*0.35, n.FatsNorm*0.2, n.CarbsNorm*0.25, counterFirst, counterSecond)
 
-	n.ProteinsNorm -= forDinnerProtein
-	n.FatsNorm -= forDinnerFat
-	n.CarbsNorm -= forDinnerCarb
+	n.ProteinsNorm -= forLunchProtein
+	n.FatsNorm -= forLunchFat
+	n.CarbsNorm -= forLunchCarb
 
 	log.Println(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
 	foodData := make(map[string]float64)
@@ -401,6 +414,8 @@ func getLunch() ([]map[string]float64, error) {
 	foodData[yName] = secondProductGram
 	foodData[zName] = thirdsProductGram
 	foodData[aName] = fourthProductGram
+	foodData[bName] = fifthProductGram
+	foodData[cName] = sixthProductGram
 
 	foodsData = append(foodsData, foodData)
 
