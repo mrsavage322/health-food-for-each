@@ -491,6 +491,7 @@ func CalculateDayNotHandler() {
 	if correctCalc == true {
 		dayMeal = append(dayMeal, breakfast, lunch, dinner)
 	} else {
+		//TODO: Починить цикл, чтобы не шел от текущего значения, а от нового
 		CalculateDayNotHandler()
 	}
 
