@@ -180,7 +180,7 @@ func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]fl
 			SELECT foodname, proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
-			   AND (feature = 'завтрак' AND isLoved IS NULL AND proteins > 10)
+			   AND (feature = 'завтрак' AND isLoved IS NULL)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
