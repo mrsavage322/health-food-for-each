@@ -21,6 +21,7 @@ type Norm struct {
 }
 
 var n Norm
+var def Norm
 
 // Расчет КБЖУ на день, возращаем proteins, fats, carbs
 func DayNewCalculation() (float64, float64, float64) {
@@ -424,13 +425,12 @@ func getLunch() ([]map[string]float64, error) {
 	return foodsData, nil
 }
 
-// TODO: Переписать чтобы значение дефолта и изменяемого были разные
 func CheckResult(p float64, f float64, c float64) bool {
-	if p > 10 || p < -10 {
+	if p > def.ProteinsNorm*1.1 || p < def.ProteinsNorm*(-1.1) {
 		return false
-	} else if f > 2 || f < -2 {
+	} else if f > def.FatsNorm*1.05 || f < def.FatsNorm*(-1.05) {
 		return false
-	} else if c > 10 || c < -10 {
+	} else if c > def.CarbsNorm*1.05 || c > def.CarbsNorm*(-1.05) {
 		return false
 	} else {
 		return true
@@ -465,6 +465,7 @@ var dayMeal [][]map[string]float64
 // TODO: rename
 func CalculateDayNotHandler() [][]map[string]float64 {
 	n.ProteinsNorm, n.FatsNorm, n.CarbsNorm = DayNewCalculation()
+	def.ProteinsNorm, def.FatsNorm, def.CarbsNorm = DayNewCalculation()
 	dayMeal = nil
 	log.Println(mealAmount)
 	if mealAmount == 3 {
