@@ -88,9 +88,9 @@ func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) 
 
 func (d *DBConnect) SetFoodData(ctx context.Context, foodname string, proteins, fats, carbs int, feature string) error {
 	d.pool.QueryRow(ctx, `
-		INSERT INTO food (foodname, proteins, fats, carbs, feature)
-		VALUES ($1, $2, $3, $4, $5)
-	`, foodname, proteins, fats, carbs, feature)
+		INSERT INTO food (foodname, proteins, fats, carbs, feature, login)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`, foodname, proteins, fats, carbs, feature, request.Login)
 
 	log.Println("Food added")
 	return nil
@@ -330,7 +330,7 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 			SELECT foodname, proteins, fats, carbs 
 			FROM food
 			WHERE (login = $1 OR login IS NULL)
-				AND (feature = 'орехи' AND isLoved IS NULL)
+				AND (feature = 'орехи' AND isLoved IS NULL AND fats > 25)
 				AND isLoved IS NULL
 				ORDER BY RANDOM()
 				LIMIT 1
