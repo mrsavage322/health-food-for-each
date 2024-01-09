@@ -305,6 +305,7 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 	return lunches, foodNames, nil
 }
 
+// TODO: Убрать один продукт
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
