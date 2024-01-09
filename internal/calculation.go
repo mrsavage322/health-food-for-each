@@ -8,11 +8,11 @@ import (
 	"strconv"
 )
 
+// Коэф физ активности
 const k = 1.2
 
-var newAmount int
-var n Norm
-var day Day
+// Количество приемов пищи
+var mealAmount int
 
 type Norm struct {
 	ProteinsNorm float64
@@ -20,17 +20,9 @@ type Norm struct {
 	CarbsNorm    float64
 }
 
-type Day struct {
-	Monday    string
-	Tuesday   string
-	Wednesday string
-	Thursday  string
-	Friday    string
-	Saturday  string
-	Sunday    string
-}
+var n Norm
 
-// Расчет КБЖУ на день
+// Расчет КБЖУ на день, возращаем proteins, fats, carbs
 func DayNewCalculation() (float64, float64, float64) {
 	getUserData, err := ConnectionDB.GetUserData(context.Background())
 	if err != nil {
@@ -40,10 +32,10 @@ func DayNewCalculation() (float64, float64, float64) {
 	age, err := strconv.ParseFloat(getUserData["age"], 3)
 	height, err := strconv.ParseFloat(getUserData["height"], 3)
 	weight, err := strconv.ParseFloat(getUserData["weight"], 3)
-	newAmount, err = strconv.Atoi(getUserData["amount"])
+	mealAmount, err = strconv.Atoi(getUserData["amount"])
 	gender := getUserData["gender"]
 
-	log.Println(age, height, weight, newAmount, k)
+	log.Println(age, height, weight, mealAmount, k)
 
 	var kcalNorm float64
 	if gender == "M" {
@@ -51,10 +43,6 @@ func DayNewCalculation() (float64, float64, float64) {
 	} else {
 		kcalNorm = (10 * weight) + (6.25 * height) - (5 * age) - 161
 	}
-
-	//n.ProteinsNorm = kcalNorm * 0.23 / 4
-	//n.FatsNorm = kcalNorm * 0.3 / 9
-	//n.CarbsNorm = kcalNorm * 0.47 / 4
 
 	return kcalNorm * 0.23 / 4, kcalNorm * 0.3 / 9, kcalNorm * 0.47 / 4
 }
@@ -144,10 +132,9 @@ func CalculateLunch(w http.ResponseWriter, r *http.Request) {
 }
 
 func getBreakfast() ([]map[string]float64, error) {
-	//DayNewCalculation()
 	getFoodData, getFoodName, err := ConnectionDB.CreateMealForBreakfast(context.Background())
 	if err != nil {
-		log.Println("Dont get fooddata!")
+		log.Println("Dont get food data!")
 		return nil, err
 	}
 
@@ -190,7 +177,7 @@ func getBreakfast() ([]map[string]float64, error) {
 		forBreakfastCarb += z3 * 0.01
 		counterSecond += 1
 	}
-	firstProductGram := counterFirst * 100 * 0.02
+	firstProductGram := counterFirst * 2
 	secondProductProductGram := counterFirst
 	thirdsProductGram := counterSecond
 
@@ -217,10 +204,9 @@ func getBreakfast() ([]map[string]float64, error) {
 }
 
 func getDinner() ([]map[string]float64, error) {
-	//DayNewCalculation()
 	getFoodData, getFoodName, err := ConnectionDB.CreateMealForDinner(context.Background())
 	if err != nil {
-		log.Println("Dont get fooddata!")
+		log.Println("Dont get food data!")
 		return nil, err
 	}
 
@@ -311,10 +297,9 @@ func getDinner() ([]map[string]float64, error) {
 }
 
 func getLunch() ([]map[string]float64, error) {
-	//DayNewCalculation()
 	getFoodData, getFoodName, err := ConnectionDB.CreateMealForLunch(context.Background())
 	if err != nil {
-		log.Println("Dont get fooddata!")
+		log.Println("Dont get food data!")
 		return nil, err
 	}
 
@@ -481,41 +466,164 @@ var dayMeal [][]map[string]float64
 func CalculateDayNotHandler() [][]map[string]float64 {
 	n.ProteinsNorm, n.FatsNorm, n.CarbsNorm = DayNewCalculation()
 	dayMeal = nil
-	breakfast, err := getBreakfast()
-	if err != nil {
-		log.Println("Failed to create meal for day")
-		return nil
-	}
-	dinner, err := getDinner()
-	if err != nil {
-		log.Println("Failed to create meal for day")
-		return nil
-	}
-	lunch, err := getLunch()
-	if err != nil {
-		log.Println("Failed to create meal for day")
-		return nil
-	}
+	log.Println(mealAmount)
+	if mealAmount == 3 {
+		breakfast, err := getBreakfast()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		dinner, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		lunch, err := getLunch()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
+		if correctCalc == true {
+			dayMeal = append(dayMeal, breakfast, lunch, dinner)
+		} else {
+			CalculateDayNotHandler()
+		}
 
-	correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
-	if correctCalc == true {
-		dayMeal = append(dayMeal, breakfast, lunch, dinner)
-	} else {
-		CalculateDayNotHandler()
+	}
+	if mealAmount == 4 {
+		breakfast, err := getBreakfast()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		dinner, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		secondDinner, err := getSecondDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		lunch, err := getLunch()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
+		if correctCalc == true {
+			dayMeal = append(dayMeal, breakfast, lunch, secondDinner, dinner)
+		} else {
+			CalculateDayNotHandler()
+		}
+	}
+	if mealAmount == 5 {
+		breakfast, err := getBreakfast()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		dinner, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		dinnerSecond, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		secondDinner, err := getSecondDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		lunch, err := getLunch()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
+		if correctCalc == true {
+			dayMeal = append(dayMeal, breakfast, lunch, dinnerSecond, secondDinner, dinner)
+		} else {
+			CalculateDayNotHandler()
+		}
+	}
+	if mealAmount == 6 {
+		breakfast, err := getBreakfast()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		dinner, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+		secondDinner, err := getSecondDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		dinnerSecond, err := getDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		secondDinnerSecond, err := getSecondDinner()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		lunch, err := getLunch()
+		if err != nil {
+			log.Println("Failed to create meal for day")
+			return nil
+		}
+
+		correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
+		if correctCalc == true {
+			dayMeal = append(dayMeal, breakfast, lunch, dinnerSecond, secondDinnerSecond, secondDinner, dinner)
+		} else {
+			CalculateDayNotHandler()
+		}
 	}
 
 	return dayMeal
 }
 
-var weekMeal [][][]map[string]float64
-
-func CalculateWeekNotHandler() {
-	//week := [7]string{"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
+func CalculateWeekNotHandler() [][][]map[string]float64 {
+	var weekMeal [][][]map[string]float64
 	weekMeal = nil
+	//week := [7]string{"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
+	//weekMap := []map[string]string
+	//first := weekMap[0]
+	//first["Day"] = first["Monday"]
+	//weekMap[0]["Day"] = weekMap[0]["Monday"]
+	//weekMap[1]["Day"] = weekMap[1]["Tuesday"]
+	//weekMap[2]["Day"] = weekMap[2]["Wednesday"]
+	//weekMap[3]["Day"] = weekMap[3]["Thursday"]
+	//weekMap[4]["Day"] = weekMap[4]["Friday"]
+	//weekMap[5]["Day"] = weekMap[5]["Saturday"]
+	//weekMap[6]["Day"] = weekMap[6]["Sunday"]
+
 	for i := 0; i < 7; i++ {
 		weekDay := CalculateDayNotHandler()
 		weekMeal = append(weekMeal, weekDay)
 	}
+	return weekMeal
 }
 
 func CalculateWeek(w http.ResponseWriter, r *http.Request) {
@@ -524,7 +632,7 @@ func CalculateWeek(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
 	} else {
 		if r.Method == http.MethodGet {
-			CalculateWeekNotHandler()
+			weekMeal := CalculateWeekNotHandler()
 			responseData, err := json.Marshal(weekMeal)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -538,5 +646,70 @@ func CalculateWeek(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+}
 
+func getSecondDinner() ([]map[string]float64, error) {
+	getFoodData, getFoodName, err := ConnectionDB.CreateMealForSecondDinner(context.Background())
+	if err != nil {
+		log.Println("Dont get food data!")
+		return nil, err
+	}
+
+	firstProduct := getFoodData[0]
+	x1 := firstProduct["proteins"]
+	x2 := firstProduct["fats"]
+	x3 := firstProduct["carbs"]
+	xName := getFoodName[0]
+
+	secondProduct := getFoodData[1]
+	y1 := secondProduct["proteins"]
+	y2 := secondProduct["fats"]
+	y3 := secondProduct["carbs"]
+	yName := getFoodName[1]
+
+	thirdProduct := getFoodData[2]
+	z1 := thirdProduct["proteins"]
+	z2 := thirdProduct["fats"]
+	z3 := thirdProduct["carbs"]
+	zName := getFoodName[2]
+
+	forDinnerProtein := 0.0
+	forDinnerFat := 0.0
+	forDinnerCarb := 0.0
+
+	var counterFirst float64
+	var counterSecond float64
+
+	for n.ProteinsNorm*0.15-forDinnerProtein > 1 {
+		forDinnerProtein += x1 * 0.01
+		forDinnerFat += x2 * 0.01
+		forDinnerCarb += x3 * 0.01
+		counterFirst += 1
+	}
+	for counterSecond < 125 {
+		forDinnerProtein += y1*0.02 + z1*0.01
+		forDinnerFat += y2*0.02 + z2*0.01
+		forDinnerCarb += y3*0.02 + z3*0.01
+		counterSecond += 1
+	}
+
+	firstProductGram := counterFirst
+	secondProductGram := counterSecond * 2
+	thirdsProductGram := counterSecond
+
+	var foodsData []map[string]float64
+
+	n.ProteinsNorm -= forDinnerProtein
+	n.FatsNorm -= forDinnerFat
+	n.CarbsNorm -= forDinnerCarb
+
+	foodData := make(map[string]float64)
+
+	foodData[xName] = firstProductGram
+	foodData[yName] = secondProductGram
+	foodData[zName] = thirdsProductGram
+
+	foodsData = append(foodsData, foodData)
+
+	return foodsData, nil
 }
