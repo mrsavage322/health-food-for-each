@@ -32,7 +32,7 @@ func main() {
 	//r.Use(handler.GzipMiddleware)
 	//r.Use(app.AuthMiddleware)
 
-	//Хэндлеры
+	//В get добавить инструкцию
 	r.Get("/", internal.MainPage)
 	r.Post("/sign_in", internal.SignIn)
 	r.Get("/sign_in", internal.SignIn)
@@ -42,10 +42,7 @@ func main() {
 	r.Get("/add", internal.AddFood)
 	r.Post("/settings", internal.Settings)
 	r.Get("/settings", internal.Settings)
-	//r.Get("/calc/breakfast", internal.CalculateBreakfast)
-	//r.Get("/calc/dinner", internal.CalculateDinner)
-	//r.Get("/calc/lunch", internal.CalculateLunch)
-	r.Get("/calc/full", internal.CalculateDay)
+	r.Get("/calc/day", internal.CalculateDay)
 	r.Get("/calc/week", internal.CalculateWeek)
 	//r.Get("/calc/full2", internal.CalculateDayTwo)
 	//r.Get("/info", InfoPage)

@@ -19,6 +19,7 @@ type FoodData struct {
 
 var food FoodData
 
+// TODO:починить авторизацию
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	//pageVariables := PageVariables{
 	//	Title: "Add food",

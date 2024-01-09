@@ -253,7 +253,14 @@ func MainPage(w http.ResponseWriter, r *http.Request) {
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
 	} else {
-		w.Write([]byte("Добро пожаловать!"))
+		w.Write([]byte("Добро пожаловать!\n Список эндпоитнов для работы с данной программой: \n" +
+			"/ - Приветствие и список доступных эндпоитнов\n" +
+			"/sign_in - Авторизация\n" +
+			"/sign_up - Регистрация\n" +
+			"/add - Добавить продукт\n" +
+			"/settings - Настройки пользователя\n" +
+			"/calc/day - Получить питание на один день\n" +
+			"/calc/weel - Получить питание на неделю\n"))
 	}
 }
 
