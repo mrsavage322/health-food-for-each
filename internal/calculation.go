@@ -442,7 +442,6 @@ func CheckResult(p float64, f float64, c float64) bool {
 }
 
 func CalculateDay(w http.ResponseWriter, r *http.Request) {
-	n.ProteinsNorm, n.FatsNorm, n.CarbsNorm = DayNewCalculation()
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
@@ -459,8 +458,6 @@ func CalculateDay(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write(responseData)
 			return
-		} else {
-
 		}
 
 	}
@@ -470,7 +467,8 @@ func CalculateDay(w http.ResponseWriter, r *http.Request) {
 var dayMeal [][]map[string]float64
 
 func CalculateDayNotHandler() {
-
+	n.ProteinsNorm, n.FatsNorm, n.CarbsNorm = DayNewCalculation()
+	dayMeal = nil
 	breakfast, err := getBreakfast()
 	if err != nil {
 		log.Println("Failed to create meal for day")
@@ -491,7 +489,6 @@ func CalculateDayNotHandler() {
 	if correctCalc == true {
 		dayMeal = append(dayMeal, breakfast, lunch, dinner)
 	} else {
-		//TODO: Починить цикл, чтобы не шел от текущего значения, а от нового
 		CalculateDayNotHandler()
 	}
 
