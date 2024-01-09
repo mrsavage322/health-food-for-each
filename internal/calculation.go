@@ -12,11 +12,22 @@ const k = 1.2
 
 var newAmount int
 var n Norm
+var day Day
 
 type Norm struct {
 	ProteinsNorm float64
 	FatsNorm     float64
 	CarbsNorm    float64
+}
+
+type Day struct {
+	Monday    string
+	Tuesday   string
+	Wednesday string
+	Thursday  string
+	Friday    string
+	Saturday  string
+	Sunday    string
 }
 
 // Расчет КБЖУ на день
@@ -466,23 +477,24 @@ func CalculateDay(w http.ResponseWriter, r *http.Request) {
 
 var dayMeal [][]map[string]float64
 
-func CalculateDayNotHandler() {
+// TODO: rename
+func CalculateDayNotHandler() [][]map[string]float64 {
 	n.ProteinsNorm, n.FatsNorm, n.CarbsNorm = DayNewCalculation()
 	dayMeal = nil
 	breakfast, err := getBreakfast()
 	if err != nil {
 		log.Println("Failed to create meal for day")
-		return
+		return nil
 	}
 	dinner, err := getDinner()
 	if err != nil {
 		log.Println("Failed to create meal for day")
-		return
+		return nil
 	}
 	lunch, err := getLunch()
 	if err != nil {
 		log.Println("Failed to create meal for day")
-		return
+		return nil
 	}
 
 	correctCalc := CheckResult(n.ProteinsNorm, n.FatsNorm, n.CarbsNorm)
@@ -490,6 +502,41 @@ func CalculateDayNotHandler() {
 		dayMeal = append(dayMeal, breakfast, lunch, dinner)
 	} else {
 		CalculateDayNotHandler()
+	}
+
+	return dayMeal
+}
+
+var weekMeal [][][]map[string]float64
+
+func CalculateWeekNotHandler() {
+	//week := [7]string{"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"}
+	weekMeal = nil
+	for i := 0; i < 7; i++ {
+		weekDay := CalculateDayNotHandler()
+		weekMeal = append(weekMeal, weekDay)
+	}
+}
+
+func CalculateWeek(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodGet {
+			CalculateWeekNotHandler()
+			responseData, err := json.Marshal(weekMeal)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		}
+
 	}
 
 }

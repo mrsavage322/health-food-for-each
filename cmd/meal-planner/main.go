@@ -46,6 +46,7 @@ func main() {
 	r.Get("/calc/dinner", internal.CalculateDinner)
 	r.Get("/calc/lunch", internal.CalculateLunch)
 	r.Get("/calc/full", internal.CalculateDay)
+	r.Get("/calc/week", internal.CalculateWeek)
 	//r.Get("/calc/full2", internal.CalculateDayTwo)
 	//r.Get("/info", InfoPage)
 	//r.Get("/{id}", Redirect)
