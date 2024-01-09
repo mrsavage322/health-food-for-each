@@ -119,13 +119,13 @@ func (s *DBConnect) CreateFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
             id SERIAL PRIMARY KEY,
-            foodname VARCHAR UNIQUE,
+            foodname VARCHAR,
             proteins INT NOT NULL,
             fats INT NOT NULL,
             carbs INT NOT NULL,
             feature VARCHAR NOT NULL,
             isLoved BOOL,
-            login VARCHAR UNIQUE
+            login VARCHAR
         );
     `)
 	if err != nil {
@@ -160,19 +160,6 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 
 	return userConfig, nil
 }
-
-//func (d *DBConnect) CreateMealForLunch(ctx context.Context) (map[string]float64, error) {
-//	row := d.pool.QueryRow(ctx, "SELECT proteins, fats, carbs FROM food WHERE login = $1 AND feature = $2", request.Login, "завтрак")
-//	breakfast := make(map[string]float64)
-//	var proteins, fats, carbs float64
-//	err := row.Scan(&proteins, &fats, &carbs)
-//	if err != nil {
-//		return nil, err
-//	}
-//	breakfast["proteins"] = proteins
-//	breakfast["fats"] = fats
-//	breakfast["carbs"] = carbs
-//}
 
 func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
@@ -456,4 +443,32 @@ func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string
 	}
 
 	return lunches, foodNames, nil
+}
+
+// TODO:!!!
+func (d *DBConnect) SetLovedFood(ctx context.Context, login, foodname string) error {
+	err := d.pool.QueryRow(ctx, `
+		INSERT INTO food (foodname, isloved, login)
+		VALUES ($1, $2)
+	`, login, foodname)
+
+	if err != nil {
+		log.Println("Have a problem :", err)
+		return nil
+	}
+	log.Println("User was created")
+	return nil
+}
+
+func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) error {
+	err := d.pool.QueryRow(ctx, `
+		DELETE FROM food
+		WHERE login = $1 AND foodname = $2
+	`, login, foodname)
+
+	if err != nil {
+		log.Println("Have a problem :", err)
+		return nil
+	}
+	return nil
 }
