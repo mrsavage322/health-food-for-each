@@ -117,6 +117,17 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Данный эндпоинт отображает и обновляет настройки пользователя. \n" +
+				"Чтобы обновить параметры, отправьте методом Get следующие параметры в виде json: \n" +
+				"\n" +
+				"gender: Ваш пол, M или F\n" +
+				"age: Ваш возраст\n" +
+				"height: Ваш рост в см\n" +
+				"weight: Ваш вес в кг\n" +
+				"amount: количество приемов пищи в день от 3 до 6\n" +
+				"\n" +
+				"Текущие параметры: \n" +
+				"\n"))
 			w.Write(responseData)
 		}
 	}
