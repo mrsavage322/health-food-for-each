@@ -18,6 +18,7 @@ type FoodData struct {
 }
 
 var food FoodData
+var dislikeFood string
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	//pageVariables := PageVariables{
@@ -121,6 +122,48 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func AddDislikeFood(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodPost {
+			decoder := json.NewDecoder(r.Body)
+			err := decoder.Decode(&dislikeFood)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			er := ConnectionDB.SetDislikeFood(context.Background(), request.Login, dislikeFood)
+			if er != nil {
+				log.Println("Have a problem with input data")
+				resp := Response{Result: "Have a problem with input data!"}
+				responseData, er := json.Marshal(resp)
+				if er != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write(responseData)
+				return
+			}
+
+			resp := Response{Result: "Success!"}
+			responseData, err := json.Marshal(resp)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		}
+	}
+}
+
 func ShowFood(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -136,6 +179,36 @@ func ShowFood(w http.ResponseWriter, r *http.Request) {
 
 			for key, value := range getFoodData {
 				fmt.Println(key, value)
+			}
+
+			responseData, err := json.Marshal(getFoodData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Please use GET method for this endpoint"))
+		}
+	}
+
+}
+
+func ShowDislikeFood(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodGet {
+
+			getFoodData, err := ConnectionDB.GetDislikeFood(context.Background())
+			if err != nil {
+				http.Error(w, "You don't have any products", http.StatusBadRequest)
+				return
 			}
 
 			responseData, err := json.Marshal(getFoodData)

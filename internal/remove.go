@@ -13,6 +13,7 @@ type NewFoodData struct {
 }
 
 var nFD NewFoodData
+var removingDislikeFood string
 
 func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
@@ -33,5 +34,28 @@ func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 				w.Write([]byte("URLs deleted"))
 			}
 		}
+	}
+}
+
+func DeleteDislikeFoodHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodDelete {
+			err := json.NewDecoder(r.Body).Decode(&removingDislikeFood)
+			if err != nil {
+				http.Error(w, "Invalid request body", http.StatusBadRequest)
+				return
+			}
+			er := ConnectionDB.DeleteDislikeFood(context.Background(), request.Login, removingDislikeFood)
+			if !er {
+				http.Error(w, "Invalid input data", http.StatusBadRequest)
+			} else {
+				w.WriteHeader(http.StatusAccepted)
+				w.Write([]byte("URLs deleted"))
+			}
+		}
+
 	}
 }

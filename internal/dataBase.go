@@ -41,6 +41,9 @@ func DataBaseConnection(connection string) DBConnect {
 	if err := dbConnect.CreateFoodTable(); err != nil {
 		fmt.Println("We have a error!")
 	}
+	if err := dbConnect.CreateUserFoodTable(); err != nil {
+		fmt.Println("We have a error!")
+	}
 
 	return *dbConnect
 }
@@ -119,11 +122,25 @@ func (s *DBConnect) CreateFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
             id SERIAL PRIMARY KEY,
-            foodname VARCHAR,
+            foodname VARCHAR UNIQUE,
             proteins INT NOT NULL,
             fats INT NOT NULL,
             carbs INT NOT NULL,
             feature VARCHAR NOT NULL,
+            login VARCHAR
+        );
+    `)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DBConnect) CreateUserFoodTable() error {
+	_, err := s.pool.Exec(context.Background(), `
+        CREATE TABLE IF NOT EXISTS food (
+            id SERIAL PRIMARY KEY,
+            foodname VARCHAR,
             isLoved BOOL,
             login VARCHAR
         );
@@ -164,29 +181,43 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-			   AND (feature = 'завтрак' AND isLoved IS NULL)
+			   AND feature = 'завтрак'
+               AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-			   AND (feature = 'перекус' AND isLoved IS NULL)
+			   AND feature = 'перекус'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-				AND (feature = 'фрукт'
-				AND isLoved IS NULL)
+				AND feature = 'фрукт'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
@@ -210,7 +241,6 @@ func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]fl
 		}
 
 		lunch := make(map[string]float64)
-		//lunch["foodname"] = foodname
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
@@ -224,8 +254,8 @@ func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]fl
 func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 			   AND ((feature = 'мясо' OR feature = 'рыба') AND isLoved IS NULL)
 			   ORDER BY RANDOM()
@@ -233,30 +263,43 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-               AND (feature = 'крупа' AND isLoved IS NULL)
+               AND feature = 'крупа'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND foodname IN ('яйцо куриное', 'авакадо', 'сыр')
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'овощ'
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
@@ -296,59 +339,85 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-			   AND ((feature = 'мясо' OR feature = 'рыба') AND isLoved IS NULL)
+			   AND (feature = 'мясо' OR feature = 'рыба')
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-               AND (feature = 'крупа' AND isLoved IS NULL)
+               AND feature = 'крупа'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 			   ORDER BY RANDOM()
 			   LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-				AND (feature = 'орехи' AND isLoved IS NULL AND fats > 25)
-				AND isLoved IS NULL
+				AND (feature = 'орехи' AND fats > 25)
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-				AND (feature = 'перекус' AND isLoved IS NULL)
-				AND isLoved IS NULL
+				AND feature = 'перекус'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'овощ'
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'фрукт'
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
@@ -386,31 +455,43 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
-				AND (feature = 'перекус' AND isLoved IS NULL)
-				AND isLoved IS NULL
+				AND feature = 'перекус'
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'овощ'
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
 		UNION ALL
 		(
-			SELECT foodname, proteins, fats, carbs 
-			FROM food
+			SELECT f.foodname, proteins, fats, carbs 
+			FROM food f
 			WHERE (login = $1 OR login IS NULL)
 				AND feature = 'фрукт'
-				AND isLoved IS NULL
+				AND NOT EXISTS (
+   					SELECT 1
+    				FROM userfood uf
+    				WHERE uf.foodname = f.foodname
+								)
 				ORDER BY RANDOM()
 				LIMIT 1
 		)
@@ -434,7 +515,7 @@ func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string
 		}
 
 		lunch := make(map[string]float64)
-		//lunch["foodname"] = foodname
+
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
@@ -445,12 +526,11 @@ func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string
 	return lunches, foodNames, nil
 }
 
-// TODO:!!!
-func (d *DBConnect) SetLovedFood(ctx context.Context, login, foodname string) error {
+func (d *DBConnect) SetDislikeFood(ctx context.Context, login, foodname string) error {
 	err := d.pool.QueryRow(ctx, `
-		INSERT INTO food (foodname, isloved, login)
-		VALUES ($1, $2)
-	`, login, foodname)
+		INSERT INTO userfood (foodname, isLoved, login)
+		VALUES ($1, FALSE, $2)
+	`, foodname, login)
 
 	if err != nil {
 		log.Println("Have a problem :", err)
@@ -463,6 +543,19 @@ func (d *DBConnect) SetLovedFood(ctx context.Context, login, foodname string) er
 func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) bool {
 	err := d.pool.QueryRow(ctx, `
 		DELETE FROM food
+		WHERE login = $1 AND foodname = $2
+	`, login, foodname)
+
+	if err != nil {
+		log.Println("Have a problem :", err)
+		return false
+	}
+	return true
+}
+
+func (d *DBConnect) DeleteDislikeFood(ctx context.Context, login, foodname string) bool {
+	err := d.pool.QueryRow(ctx, `
+		DELETE FROM userfood
 		WHERE login = $1 AND foodname = $2
 	`, login, foodname)
 
@@ -489,13 +582,37 @@ func (d *DBConnect) GetUserFood(ctx context.Context) ([]map[string]string, error
 		}
 
 		userFood := make(map[string]string)
-		//lunch["foodname"] = foodname
 		userFood["foodname"] = foodname
 		userFood["proteins"] = proteins
 		userFood["fats"] = fats
 		userFood["carbs"] = carbs
 		userFood["feature"] = feature
 		userFoods = append(userFoods, userFood)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userFoods, nil
+}
+
+func (d *DBConnect) GetDislikeFood(ctx context.Context) ([]string, error) {
+	rows, err := d.pool.Query(ctx, "SELECT foodname FROM userfood WHERE login = $1 AND isloved is false", request.Login)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var userFoods []string
+
+	for rows.Next() {
+		var foodname string
+		err := rows.Scan(&foodname)
+		if err != nil {
+			return nil, err
+		}
+
+		userFoods = append(userFoods, foodname)
 	}
 
 	if err != nil {
