@@ -16,7 +16,7 @@ var dbConnection string
 
 func main() {
 
-	dbConnection = "postgres://postgres:@localhost:5432/kbgu"
+	dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
 	//SetFlags()
 	//SetConfig()
@@ -49,7 +49,7 @@ func main() {
 	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)
 	//r.Get("/food/show", ShowMyFood)
-	r.Delete("/food/delete", internal.DeleteFood)
+	r.Delete("/food/delete", internal.DeleteFoodHandler)
 
 	//TODO: вынести в конфиг
 	internal.ServerAddress = ":8080"

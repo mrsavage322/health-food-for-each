@@ -460,7 +460,7 @@ func (d *DBConnect) SetLovedFood(ctx context.Context, login, foodname string) er
 	return nil
 }
 
-func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) error {
+func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) bool {
 	err := d.pool.QueryRow(ctx, `
 		DELETE FROM food
 		WHERE login = $1 AND foodname = $2
@@ -468,7 +468,7 @@ func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) erro
 
 	if err != nil {
 		log.Println("Have a problem :", err)
-		return nil
+		return false
 	}
-	return nil
+	return true
 }
