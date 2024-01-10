@@ -41,7 +41,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 			f, err := strconv.Atoi(food.Fats)
 			c, err := strconv.Atoi(food.Carbs)
 
-			if len(food.Foodname) > 200 {
+			if len(food.Foodname) > 100 {
 				isErrorData = true
 				log.Println("Have a problem with input data!")
 				http.Error(w, "Have a problem with input data - too long!", http.StatusNotAcceptable)
