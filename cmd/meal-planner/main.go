@@ -13,9 +13,6 @@ import (
 )
 
 func main() {
-
-	//dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
-
 	internal.SetFlags()
 	internal.SetConfig()
 	internal.ConnectionDB = internal.DataBaseConnection(internal.Config.DatabaseAddress)
