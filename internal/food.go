@@ -138,20 +138,6 @@ func ShowFood(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(key, value)
 			}
 
-			//foodname := getFoodData["foodname"]
-			//proteins := getFoodData["height"]
-			//fats := getFoodData["weight"]
-			//carbs := getFoodData["carbs"]
-			//feature := getFoodData["gender"]
-
-			//decoder := json.NewDecoder(r.Body)
-			//er := decoder.Decode(&food)
-			//if er != nil {
-			//	http.Error(w, err.Error(), http.StatusBadRequest)
-			//	return
-			//}
-
-			//resp := Response{Result: "Success!"}
 			responseData, err := json.Marshal(getFoodData)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
