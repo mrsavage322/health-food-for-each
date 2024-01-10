@@ -21,10 +21,6 @@ var food FoodData
 var dislikeFood string
 
 func AddFood(w http.ResponseWriter, r *http.Request) {
-	//pageVariables := PageVariables{
-	//	Title: "Add food",
-	//}
-
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)

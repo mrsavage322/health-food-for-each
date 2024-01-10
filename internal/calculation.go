@@ -428,15 +428,12 @@ func getLunch(kprot, kfat, kcarb float64) ([]map[string]float64, error) {
 }
 
 func CheckResult(p float64, f float64, c float64) bool {
-	log.Println(p, def.ProteinsNorm*0.1, def.ProteinsNorm*(-0.1))
+
 	if p > def.ProteinsNorm*0.1 || p < def.ProteinsNorm*(-0.1) {
 		return false
-
 	} else if f > def.FatsNorm*0.05 || f < def.FatsNorm*(-0.05) {
-		log.Println(f, def.FatsNorm*0.05, def.FatsNorm*(-0.05))
 		return false
 	} else if c > def.CarbsNorm*0.05 || c < def.CarbsNorm*(-0.05) {
-		log.Println(c, def.CarbsNorm*0.05, def.CarbsNorm*(-0.05))
 		return false
 	} else {
 		return true
@@ -445,6 +442,7 @@ func CheckResult(p float64, f float64, c float64) bool {
 
 func CalculateDay(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
+	//def.ProteinsNorm, def.FatsNorm, def.CarbsNorm = DayNewCalculation()
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
 		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
 	} else {
@@ -459,6 +457,7 @@ func CalculateDay(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			w.Write(responseData)
+			//log.Println("PFC: ", def.ProteinsNorm, def.FatsNorm, def.CarbsNorm)
 			return
 		}
 

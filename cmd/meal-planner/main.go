@@ -17,27 +17,22 @@ func main() {
 	internal.SetConfig()
 	internal.ConnectionDB = internal.DataBaseConnection(internal.Config.DatabaseAddress)
 	r := chi.NewRouter()
-	//middleware
-	//r.Use(app.LogRequest)
-	//r.Use(handler.GzipMiddleware)
-	//r.Use(app.AuthMiddleware)
 
 	r.Get("/", internal.MainPage)
 	r.Post("/sign_in", internal.SignIn)
-	r.Get("/sign_in", internal.SignIn)
 	r.Post("/sign_up", internal.SignUp)
-	r.Get("/sign_up", internal.SignUp)
 	r.Post("/food/add", internal.AddFood)
-	r.Get("/add/add", internal.AddFood)
 	r.Post("/settings", internal.Settings)
+	r.Post("/food/dislike", internal.AddDislikeFood)
+
 	r.Get("/settings", internal.Settings)
 	r.Get("/calc/day", internal.CalculateDay)
 	r.Get("/calc/week", internal.CalculateWeek)
-	r.Post("/food/dislike", internal.AddDislikeFood)
 	r.Get("/food/dislike", internal.ShowDislikeFood)
-	r.Delete("/food/delete/dislike", internal.DeleteDislikeFoodHandler)
-	//r.Get("/ping", BDConnection)
+	r.Get("/ping", internal.BDConnection)
 	r.Get("/food/show", internal.ShowFood)
+
+	r.Delete("/food/delete/dislike", internal.DeleteDislikeFoodHandler)
 	r.Delete("/food/delete", internal.DeleteFoodHandler)
 
 	srv := &http.Server{
@@ -45,7 +40,6 @@ func main() {
 		Handler: r,
 	}
 
-	// Создаем канал для сигналов завершения
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
