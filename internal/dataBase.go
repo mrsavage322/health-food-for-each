@@ -63,7 +63,7 @@ type UserAction interface {
 	//Get(ctx context.Context, age, height, weight int) error
 }
 
-func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) error {
+func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) bool {
 	err := d.pool.QueryRow(ctx, `
 		INSERT INTO userdata (login, password)
 		VALUES ($1, $2)
@@ -73,10 +73,10 @@ func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) 
 
 	if err != nil {
 		log.Println("Have a problem :", err)
-		return nil
+		return false
 	}
 	log.Println("User was created")
-	return nil
+	return true
 }
 
 func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) ([]byte, error) {

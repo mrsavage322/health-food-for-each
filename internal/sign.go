@@ -161,7 +161,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		hashPassword := getHash(request.Login, request.Password)
 
 		er := ConnectionDB.SetAuthData(context.Background(), request.Login, hashPassword)
-		if er != nil {
+		if er != true {
 			log.Println("Login already exists")
 			resp := Response{Result: "Login already exists!"}
 			responseData, err := json.Marshal(resp)
