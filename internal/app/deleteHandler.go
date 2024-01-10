@@ -1,12 +1,10 @@
-package internal
+package app
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
 )
-
-//TODO: Проверка для записи уже имеюгося продукта
 
 type NewFoodData struct {
 	Foodname string `json:"foodname"`
@@ -15,6 +13,7 @@ type NewFoodData struct {
 var nFD NewFoodData
 var removingDislikeFood string
 
+// Хэндлер удаляет получаемый продукт пользователя
 func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -26,7 +25,7 @@ func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Invalid request body", http.StatusBadRequest)
 				return
 			}
-			er := ConnectionDB.DeleteFood(context.Background(), request.Login, nFD.Foodname)
+			er := ConnectionDB.DeleteFood(context.Background(), Request.Login, nFD.Foodname)
 			if !er {
 				http.Error(w, "Invalid input data", http.StatusBadRequest)
 			} else {
@@ -37,6 +36,7 @@ func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Хэндлер удаляет получаемый продукт, который пользователь добавил в исключение
 func DeleteDislikeFoodHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -48,7 +48,7 @@ func DeleteDislikeFoodHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Invalid request body", http.StatusBadRequest)
 				return
 			}
-			er := ConnectionDB.DeleteDislikeFood(context.Background(), request.Login, removingDislikeFood)
+			er := ConnectionDB.DeleteDislikeFood(context.Background(), Request.Login, removingDislikeFood)
 			if !er {
 				http.Error(w, "Invalid input data", http.StatusBadRequest)
 			} else {

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
-	"health-food-for-each/internal"
+	"health-food-for-each/internal/app"
 	"log"
 	"net/http"
 	"os"
@@ -13,30 +13,30 @@ import (
 )
 
 func main() {
-	internal.SetFlags()
-	internal.SetConfig()
-	internal.ConnectionDB = internal.DataBaseConnection(internal.Config.DatabaseAddress)
+	app.SetFlags()
+	app.SetConfig()
+	app.ConnectionDB = app.DataBaseConnection(app.Config.DatabaseAddress)
 	r := chi.NewRouter()
 
-	r.Get("/", internal.MainPage)
-	r.Post("/sign_in", internal.SignIn)
-	r.Post("/sign_up", internal.SignUp)
-	r.Post("/food/add", internal.AddFood)
-	r.Post("/settings", internal.Settings)
-	r.Post("/food/dislike", internal.AddDislikeFood)
+	r.Get("/", app.MainPage)
+	r.Post("/sign_in", app.SignIn)
+	r.Post("/sign_up", app.SignUp)
+	r.Post("/food/add", app.AddFood)
+	r.Post("/settings", app.Settings)
+	r.Post("/food/dislike", app.AddDislikeFood)
 
-	r.Get("/settings", internal.Settings)
-	r.Get("/calc/day", internal.CalculateDay)
-	r.Get("/calc/week", internal.CalculateWeek)
-	r.Get("/food/dislike", internal.ShowDislikeFood)
-	r.Get("/ping", internal.BDConnection)
-	r.Get("/food/show", internal.ShowFood)
+	r.Get("/settings", app.Settings)
+	r.Get("/calc/day", app.CalculateDayHandler)
+	r.Get("/calc/week", app.CalculateWeekHandler)
+	r.Get("/food/dislike", app.ShowDislikeFood)
+	r.Get("/ping", app.BDConnection)
+	r.Get("/food/show", app.ShowFood)
 
-	r.Delete("/food/delete/dislike", internal.DeleteDislikeFoodHandler)
-	r.Delete("/food/delete", internal.DeleteFoodHandler)
+	r.Delete("/food/delete/dislike", app.DeleteDislikeFoodHandler)
+	r.Delete("/food/delete", app.DeleteFoodHandler)
 
 	srv := &http.Server{
-		Addr:    internal.Config.ServerAddress,
+		Addr:    app.Config.ServerAddress,
 		Handler: r,
 	}
 
@@ -55,7 +55,7 @@ func main() {
 		}
 	}()
 
-	log.Printf("Server is listening on %s\n", internal.ServerAddress)
+	log.Printf("Server is listening on %s\n", app.ServerAddress)
 
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("HTTP server ListenAndServe: %v", err)

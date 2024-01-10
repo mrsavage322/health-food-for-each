@@ -1,4 +1,4 @@
-package internal
+package app
 
 import (
 	"context"
@@ -18,6 +18,7 @@ type UserData struct {
 
 var userData UserData
 
+// Хэндлер с конфигом пользовавтеля. Метод get - получить текущий конфиг, метод post - обновление конфига
 func Settings(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -39,6 +40,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			weight, err := strconv.Atoi(userData.Weight)
 			amount, err := strconv.Atoi(userData.Amount)
 
+			//Прроверки на корректность получаемых данных
 			if gender != "M" && gender != "F" {
 				isErrorData = true
 				http.Error(w, "Have a problem with input data - we need a correct gender: M or F!", http.StatusNotAcceptable)
@@ -63,7 +65,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 			if isErrorData {
 				http.Error(w, "Have a problem with input data", http.StatusNotAcceptable)
 			} else {
-				er := ConnectionDB.SetUserData(context.Background(), request.Login, gender, age, height, weight, amount)
+				er := ConnectionDB.SetUserData(context.Background(), Request.Login, gender, age, height, weight, amount)
 				if er != nil {
 					log.Println("Have a problem with input data")
 					resp := Response{Result: "We have a problem with input data!"}
@@ -72,7 +74,6 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
 						return
 					}
-					log.Println(age, gender, height, weight, amount)
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write(responseData)

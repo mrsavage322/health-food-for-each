@@ -1,4 +1,4 @@
-package internal
+package app
 
 import (
 	"context"
@@ -20,6 +20,7 @@ type FoodData struct {
 var food FoodData
 var dislikeFood string
 
+// Добавление продукта пользователем. В функции присутсвуют проверки на корректность входных данных
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -118,6 +119,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Функция добавления продуктов, которые будут исключены при составлении питания для пользователя
 func AddDislikeFood(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -131,7 +133,7 @@ func AddDislikeFood(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			er := ConnectionDB.SetDislikeFood(context.Background(), request.Login, dislikeFood)
+			er := ConnectionDB.SetDislikeFood(context.Background(), Request.Login, dislikeFood)
 			if er != nil {
 				log.Println("Have a problem with input data")
 				resp := Response{Result: "Have a problem with input data!"}
@@ -160,6 +162,7 @@ func AddDislikeFood(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Хэндлер выводит кастномные продукты пользователя
 func ShowFood(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
@@ -194,6 +197,7 @@ func ShowFood(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Хэндлер вернет продукты, которые пользователь исключил
 func ShowDislikeFood(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {

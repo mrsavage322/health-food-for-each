@@ -1,4 +1,4 @@
-package internal
+package app
 
 import (
 	"context"
@@ -7,28 +7,16 @@ import (
 	"log"
 )
 
-type Auth interface {
-	SetAuthData(ctx context.Context, login string, pass []byte) error
-	GetAuthData(ctx context.Context, login string, pass []byte) (string, error)
-}
-
-type PersonData struct {
-	Username string
-	Password string
-}
-
 type DBConnect struct {
 	pool *pgxpool.Pool
 	error
 }
 
-// TODO: инит бд один раз
 func DataBaseConnection(connection string) DBConnect {
 	pool, err := pgxpool.New(context.Background(), connection)
 	if err != nil {
 		fmt.Println("We have a error!", err)
 	}
-	//defer pool.Close()
 
 	dbConnect := &DBConnect{
 		pool:  pool,
@@ -48,21 +36,7 @@ func DataBaseConnection(connection string) DBConnect {
 	return *dbConnect
 }
 
-//	type Authenticator interface {
-//		SetAuthData()
-//		GetAuthData()
-//	}
-type FoodAction interface {
-	SetFoodData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
-	//GetFoodData(data FoodData) error
-}
-
-type UserAction interface {
-	SetUserData(ctx context.Context, foodname, proteins, fats, carbs int, feature string) error
-	GetUserData(ctx context.Context) (map[string]string, error)
-	//Get(ctx context.Context, age, height, weight int) error
-}
-
+// Запись в БД логина и пароля
 func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) bool {
 	err := d.pool.QueryRow(ctx, `
 		INSERT INTO userdata (login, password)
@@ -79,6 +53,7 @@ func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) 
 	return true
 }
 
+// Получение логина и пароля
 func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) ([]byte, error) {
 	var userData []byte
 	err := d.pool.QueryRow(ctx, "SELECT password FROM userdata WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
@@ -89,16 +64,18 @@ func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) 
 	return userData, err
 }
 
+// Добавление продукта
 func (d *DBConnect) SetFoodData(ctx context.Context, foodname string, proteins, fats, carbs int, feature string) error {
 	d.pool.QueryRow(ctx, `
 		INSERT INTO food (foodname, proteins, fats, carbs, feature, login)
 		VALUES ($1, $2, $3, $4, $5, $6)
-	`, foodname, proteins, fats, carbs, feature, request.Login)
+	`, foodname, proteins, fats, carbs, feature, Request.Login)
 
 	log.Println("Food added")
 	return nil
 }
 
+// Содание таблицы с конфигом пользователя
 func (s *DBConnect) CreateAuthTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS userdata (
@@ -118,6 +95,7 @@ func (s *DBConnect) CreateAuthTable() error {
 	return nil
 }
 
+// Создание таблицы с данными по еде
 func (s *DBConnect) CreateFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
@@ -136,6 +114,7 @@ func (s *DBConnect) CreateFoodTable() error {
 	return nil
 }
 
+// Создание дополнительной таблицы, в которой будут хранится продукты, которые пользователь исключает
 func (s *DBConnect) CreateUserFoodTable() error {
 	_, err := s.pool.Exec(context.Background(), `
         CREATE TABLE IF NOT EXISTS food (
@@ -151,6 +130,7 @@ func (s *DBConnect) CreateUserFoodTable() error {
 	return nil
 }
 
+// Установка данных в конфиге пользователя. По ним будет проихводиться расчет
 func (d *DBConnect) SetUserData(ctx context.Context, login, gender string, age, height, weight, amount int) error {
 	d.pool.QueryRow(ctx, `
 		UPDATE userdata SET age=$2, gender=$3, height=$4, weight=$5, amount=$6
@@ -161,8 +141,9 @@ func (d *DBConnect) SetUserData(ctx context.Context, login, gender string, age, 
 	return nil
 }
 
+// Получение данных пользовтеля
 func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) {
-	row := d.pool.QueryRow(ctx, "SELECT age, gender, height, weight, amount FROM userdata WHERE login = $1", request.Login)
+	row := d.pool.QueryRow(ctx, "SELECT age, gender, height, weight, amount FROM userdata WHERE login = $1", Request.Login)
 	userConfig := make(map[string]string)
 	var age, gender, height, weight, amount string
 	err := row.Scan(&age, &gender, &height, &weight, &amount)
@@ -178,6 +159,7 @@ func (d *DBConnect) GetUserData(ctx context.Context) (map[string]string, error) 
 	return userConfig, nil
 }
 
+// Создание питания на завтрак
 func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
@@ -222,7 +204,7 @@ func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]fl
 				LIMIT 1
 		)
 		LIMIT 3;
-			   `, request.Login)
+			   `, Request.Login)
 
 	if err != nil {
 		return nil, nil, err
@@ -251,6 +233,7 @@ func (d *DBConnect) CreateMealForBreakfast(ctx context.Context) ([]map[string]fl
 	return lunches, foodNames, nil
 }
 
+// Создание питания на обед
 func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
@@ -305,7 +288,7 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 		)
 
 		LIMIT 4;
-			   `, request.Login)
+			   `, Request.Login)
 
 	if err != nil {
 		return nil, nil, err
@@ -324,7 +307,6 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 		}
 
 		lunch := make(map[string]float64)
-		//lunch["foodname"] = foodname
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
@@ -335,7 +317,7 @@ func (d *DBConnect) CreateMealForDinner(ctx context.Context) ([]map[string]float
 	return lunches, foodNames, nil
 }
 
-// TODO: Убрать один продукт
+// Создание питания на обед
 func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
@@ -422,7 +404,7 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 				LIMIT 1
 		)
 		LIMIT 6;
-			   `, request.Login)
+			   `, Request.Login)
 
 	if err != nil {
 		return nil, nil, err
@@ -441,7 +423,6 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 		}
 
 		lunch := make(map[string]float64)
-		//lunch["foodname"] = foodname
 		lunch["proteins"] = proteins
 		lunch["fats"] = fats
 		lunch["carbs"] = carbs
@@ -452,6 +433,7 @@ func (d *DBConnect) CreateMealForLunch(ctx context.Context) ([]map[string]float6
 	return lunches, foodNames, nil
 }
 
+// Создание питания на ужин
 func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string]float64, []string, error) {
 	rows, err := d.pool.Query(ctx, `
 		(
@@ -496,7 +478,7 @@ func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string
 				LIMIT 1
 		)
 		LIMIT 3;
-			   `, request.Login)
+			   `, Request.Login)
 
 	if err != nil {
 		return nil, nil, err
@@ -526,6 +508,7 @@ func (d *DBConnect) CreateMealForSecondDinner(ctx context.Context) ([]map[string
 	return lunches, foodNames, nil
 }
 
+// Добавить продукты, которые пользователь исключает
 func (d *DBConnect) SetDislikeFood(ctx context.Context, login, foodname string) error {
 	err := d.pool.QueryRow(ctx, `
 		INSERT INTO userfood (foodname, isLoved, login)
@@ -540,6 +523,7 @@ func (d *DBConnect) SetDislikeFood(ctx context.Context, login, foodname string) 
 	return nil
 }
 
+// Удаление продукта, который добавил пользователь
 func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) bool {
 	err := d.pool.QueryRow(ctx, `
 		DELETE FROM food
@@ -553,6 +537,7 @@ func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) bool
 	return true
 }
 
+// Удаление продукта, который добавил пользователь в исключения
 func (d *DBConnect) DeleteDislikeFood(ctx context.Context, login, foodname string) bool {
 	err := d.pool.QueryRow(ctx, `
 		DELETE FROM userfood
@@ -566,8 +551,9 @@ func (d *DBConnect) DeleteDislikeFood(ctx context.Context, login, foodname strin
 	return true
 }
 
+// Получение продуктов пользовтеля
 func (d *DBConnect) GetUserFood(ctx context.Context) ([]map[string]string, error) {
-	rows, err := d.pool.Query(ctx, "SELECT foodname, proteins, fats, carbs, feature FROM food WHERE login = $1", request.Login)
+	rows, err := d.pool.Query(ctx, "SELECT foodname, proteins, fats, carbs, feature FROM food WHERE login = $1", Request.Login)
 	if err != nil {
 		return nil, err
 	}
@@ -597,8 +583,9 @@ func (d *DBConnect) GetUserFood(ctx context.Context) ([]map[string]string, error
 	return userFoods, nil
 }
 
+// Получение продуктов, которые пользователь добавил в исключения
 func (d *DBConnect) GetDislikeFood(ctx context.Context) ([]string, error) {
-	rows, err := d.pool.Query(ctx, "SELECT foodname FROM userfood WHERE login = $1 AND isloved is false", request.Login)
+	rows, err := d.pool.Query(ctx, "SELECT foodname FROM userfood WHERE login = $1 AND isloved is false", Request.Login)
 	if err != nil {
 		return nil, err
 	}
