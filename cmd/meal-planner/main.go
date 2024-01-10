@@ -12,15 +12,13 @@ import (
 	"time"
 )
 
-var dbConnection string
-
 func main() {
 
-	dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
-	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
+	//dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
+
 	internal.SetFlags()
 	internal.SetConfig()
-
+	internal.ConnectionDB = internal.DataBaseConnection(internal.Config.DatabaseAddress)
 	r := chi.NewRouter()
 	//middleware
 	//r.Use(app.LogRequest)
