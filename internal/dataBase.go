@@ -472,3 +472,20 @@ func (d *DBConnect) DeleteFood(ctx context.Context, login, foodname string) bool
 	}
 	return true
 }
+
+func (d *DBConnect) GetUserFood(ctx context.Context) (map[string]string, error) {
+	row := d.pool.QueryRow(ctx, "SELECT foodname, proteins, fats, carbs, feature FROM food WHERE login = $1", request.Login)
+	userFood := make(map[string]string)
+	var foodname, proteins, fats, carbs, feature string
+	err := row.Scan(&foodname, &proteins, &fats, &carbs, &feature)
+	if err != nil {
+		return nil, err
+	}
+	userFood["foodname"] = foodname
+	userFood["proteins"] = proteins
+	userFood["fats"] = fats
+	userFood["carbs"] = carbs
+	userFood["feature"] = feature
+
+	return userFood, nil
+}

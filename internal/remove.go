@@ -14,7 +14,6 @@ type NewFoodData struct {
 
 var nFD NewFoodData
 
-// TODO: !!!
 func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {

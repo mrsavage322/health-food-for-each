@@ -18,13 +18,8 @@ func main() {
 
 	dbConnection = "postgres://postgres:SberBank_2023@localhost:5432/kbgu"
 	internal.ConnectionDB = internal.DataBaseConnection(dbConnection)
-	//SetFlags()
-	//SetConfig()
-	//Подключение к БД
-	//var once sync.Once
-	//once.Do(func() {
-	//	Config.URLMapDB = app.NewURLDBStorage(app.Config.DatabaseAddr)
-	//})
+	internal.SetFlags()
+	internal.SetConfig()
 
 	r := chi.NewRouter()
 	//middleware
@@ -32,7 +27,6 @@ func main() {
 	//r.Use(handler.GzipMiddleware)
 	//r.Use(app.AuthMiddleware)
 
-	//В get добавить инструкцию
 	r.Get("/", internal.MainPage)
 	r.Post("/sign_in", internal.SignIn)
 	r.Get("/sign_in", internal.SignIn)
@@ -46,15 +40,12 @@ func main() {
 	r.Get("/calc/week", internal.CalculateWeek)
 	//r.Get("/food/dislike", internal.)
 	//r.Post("/food/dislike", internal.)
-	//r.Get("/{id}", Redirect)
 	//r.Get("/ping", BDConnection)
-	//r.Get("/food/show", ShowMyFood)
+	r.Get("/food/show", internal.ShowFood)
 	r.Delete("/food/delete", internal.DeleteFoodHandler)
 
-	//TODO: вынести в конфиг
-	internal.ServerAddress = ":8080"
 	srv := &http.Server{
-		Addr:    internal.ServerAddress,
+		Addr:    internal.Config.ServerAddress,
 		Handler: r,
 	}
 

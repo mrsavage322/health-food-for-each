@@ -19,7 +19,6 @@ type FoodData struct {
 
 var food FoodData
 
-// TODO:починить авторизацию
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	//pageVariables := PageVariables{
 	//	Title: "Add food",
@@ -42,7 +41,7 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 			f, err := strconv.Atoi(food.Fats)
 			c, err := strconv.Atoi(food.Carbs)
 
-			if len(food.Foodname) > 50 {
+			if len(food.Foodname) > 200 {
 				isErrorData = true
 				log.Println("Have a problem with input data!")
 				http.Error(w, "Have a problem with input data - too long!", http.StatusNotAcceptable)
@@ -120,76 +119,52 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	////TODO: убрать вывод в консоль html
-	//tmpl, err := template.New("add").Parse(`
-	//	<!DOCTYPE html>
-	//	<html>
-	//	<head>
-	//		<title>{{.Title}}</title>
-	//	</head>
-	//	<body>
-	//		<h1>{{.Title}}</h1>
-	//		<form id="signupForm">
-	//			<label for="foodname">foodname:</label>
-	//			<input type="text" id="foodname" name="foodname" required><br>
-	//
-	//			<label for="proteins">proteins:</label>
-	//			<input type="text" id="proteins" name="proteins" required><br>
-	//
-	//			<label for="fats">fats:</label>
-	//			<input type="text" id="fats" name="fats" required><br>
-	//
-	//			<label for="carbs">carbs:</label>
-	//			<input type="text" id="carbs" name="carbs" required><br>
-	//
-	//			<label for="feature">feature:</label>
-	//			<input type="text" id="feature" name="feature" required><br>
-	//
-	//			<button type="button" onclick="submitForm()">Добавить!</button>
-	//		</form>
-	//
-	//		<script>
-	//			function submitForm() {
-	//				var foodname = document.getElementById("foodname").value;
-	//				var proteins = document.getElementById("proteins").value;
-	//				var fats = document.getElementById("fats").value;
-	//				var carbs = document.getElementById("carbs").value;
-	//				var feature = document.getElementById("feature").value;
-	//
-	//				var data = {
-	//					"foodname": foodname,
-	//					"proteins": proteins,
-	//					"fats": fats,
-	//					"carbs": carbs,
-	//					"feature": feature
-	//
-	//				};
-	//
-	//				fetch('/add', {
-	//					method: 'POST',
-	//					headers: {
-	//						'Content-Type': 'application/json'
-	//					},
-	//					body: JSON.stringify(data)
-	//				})
-	//				.then(response => response.json())
-	//				.then(data => {
-	//					console.log('Ответ сервера:', data);
-	//					// Обработка ответа от сервера здесь
-	//				})
-	//				.catch(error => {
-	//					console.error('Ошибка при отправке данных:', error);
-	//				});
-	//			}
-	//		</script>
-	//	</body>
-	//	</html>
-	//`)
+}
 
-	//if err != nil {
-	//	http.Error(w, err.Error(), http.StatusInternalServerError)
-	//	return
-	//}
+func ShowFood(w http.ResponseWriter, r *http.Request) {
+	session, _ := store.Get(r, "session")
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
+	} else {
+		if r.Method == http.MethodGet {
 
-	//tmpl.Execute(w, pageVariables)
+			getFoodData, err := ConnectionDB.GetUserFood(context.Background())
+			if err != nil {
+				http.Error(w, "You don't have any products", http.StatusBadRequest)
+				return
+			}
+
+			for key, value := range getFoodData {
+				fmt.Println(key, value)
+			}
+
+			//foodname := getFoodData["foodname"]
+			//proteins := getFoodData["height"]
+			//fats := getFoodData["weight"]
+			//carbs := getFoodData["carbs"]
+			//feature := getFoodData["gender"]
+
+			//decoder := json.NewDecoder(r.Body)
+			//er := decoder.Decode(&food)
+			//if er != nil {
+			//	http.Error(w, err.Error(), http.StatusBadRequest)
+			//	return
+			//}
+
+			//resp := Response{Result: "Success!"}
+			responseData, err := json.Marshal(getFoodData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(responseData)
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("Please use GET method for this endpoint"))
+		}
+	}
+
 }
