@@ -54,14 +54,14 @@ func (d *DBConnect) SetAuthData(ctx context.Context, login string, pass []byte) 
 }
 
 // Получение логина и пароля
-func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) ([]byte, error) {
+func (d *DBConnect) GetAuthData(ctx context.Context, login string, pass []byte) error {
 	var userData []byte
 	err := d.pool.QueryRow(ctx, "SELECT password FROM userdata WHERE login = $1 AND password = $2", login, pass).Scan(&userData)
 	if err != nil {
 		log.Println("User not exist or password was entered incorrect!")
-		return nil, err
+		return err
 	}
-	return userData, err
+	return err
 }
 
 // Добавление продукта

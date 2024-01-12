@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -45,8 +44,8 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 		hashPassword := getHash(Request.Login, Request.Password)
 
-		_, er := ConnectionDB.GetAuthData(context.Background(), Request.Login, hashPassword)
-		if er != nil {
+		err = ConnectionDB.GetAuthData(r.Context(), Request.Login, hashPassword)
+		if err != nil {
 			resp := Response{Result: "Failed!"}
 			responseData, err := json.Marshal(resp)
 			if err != nil {
@@ -56,22 +55,25 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(responseData)
 			return
-		} else {
-			resp := Response{Result: "Success!"}
-			responseData, err := json.Marshal(resp)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			session.Values["authenticated"] = true
-			session.Save(r, w)
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusCreated)
-			w.Write(responseData)
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		}
+
+		resp := Response{Result: "Success!"}
+		responseData, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		session.Values["authenticated"] = true
+		session.Save(r, w)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write(responseData)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+
 	}
+
 }
 
 // Хэндлер регистрации пользователя.
@@ -86,8 +88,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 		hashPassword := getHash(Request.Login, Request.Password)
 
-		er := ConnectionDB.SetAuthData(context.Background(), Request.Login, hashPassword)
-		if er != true {
+		ok := ConnectionDB.SetAuthData(r.Context(), Request.Login, hashPassword)
+		if ok != true {
 			log.Println("Login already exists")
 			resp := Response{Result: "Login already exists!"}
 			responseData, err := json.Marshal(resp)
@@ -120,15 +122,17 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 func MainPage(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session")
 	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
-		http.Redirect(w, r, "/sign_in", http.StatusSeeOther)
-	} else {
-		w.Write([]byte("Добро пожаловать!\n Список эндпоитнов для работы с данной программой: \n" +
-			"/ - Приветствие и список доступных эндпоитнов\n" +
-			"/sign_in - Авторизация\n" +
-			"/sign_up - Регистрация\n" +
-			"/food/add - Добавить продукт\n" +
-			"/settings - Настройки пользователя\n" +
-			"/calc/day - Получить питание на один день\n" +
-			"/calc/weel - Получить питание на неделю\n"))
+		http.Error(w, "You are not auth", http.StatusBadRequest)
+		return
 	}
+
+	w.Write([]byte("Добро пожаловать!\n Список эндпоитнов для работы с данной программой: \n" +
+		"/ - Приветствие и список доступных эндпоитнов\n" +
+		"/sign_in - Авторизация\n" +
+		"/sign_up - Регистрация\n" +
+		"/food/add - Добавить продукт\n" +
+		"/settings - Настройки пользователя\n" +
+		"/calc/day - Получить питание на один день\n" +
+		"/calc/weel - Получить питание на неделю\n"))
+
 }
