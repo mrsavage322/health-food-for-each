@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 )
@@ -32,7 +31,7 @@ func DeleteFoodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := ConnectionDB.DeleteFood(context.Background(), Request.Login, nFD.Foodname)
+	ok := ConnectionDB.DeleteFood(r.Context(), Request.Login, nFD.Foodname)
 	if !ok {
 		http.Error(w, "Invalid input data", http.StatusBadRequest)
 		return
@@ -62,7 +61,7 @@ func DeleteDislikeFoodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := ConnectionDB.DeleteDislikeFood(context.Background(), Request.Login, removingDislikeFood)
+	ok := ConnectionDB.DeleteDislikeFood(r.Context(), Request.Login, removingDislikeFood)
 	if !ok {
 		http.Error(w, "Invalid input data", http.StatusBadRequest)
 		return
