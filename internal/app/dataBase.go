@@ -136,8 +136,6 @@ func (d *DBConnect) SetUserData(ctx context.Context, login, gender string, age, 
 		UPDATE userdata SET age=$2, gender=$3, height=$4, weight=$5, amount=$6
 		WHERE login=$1
 	`, login, age, gender, height, weight, amount)
-
-	log.Println("User data update!")
 	return nil
 }
 
