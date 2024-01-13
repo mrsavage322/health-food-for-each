@@ -9,15 +9,15 @@ import (
 )
 
 func BDConnection(w http.ResponseWriter, r *http.Request) {
-	conn, err := pgx.Connect(context.Background(), Config.DatabaseAddress)
+	conn, err := pgx.Connect(r.Context(), Config.DatabaseAddress)
 	if err != nil {
 		log.Println("Database connection error:", err)
 		http.Error(w, "Database connection error", http.StatusInternalServerError)
 		return
 	}
-	defer conn.Close(context.Background())
+	defer conn.Close(r.Context())
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 	defer cancel()
 
 	if err = conn.Ping(ctx); err != nil {
